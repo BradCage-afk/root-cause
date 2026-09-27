@@ -63,7 +63,7 @@ a join; failure debt is arithmetic; fix effectiveness and prediction grading are
 The model does two narrow jobs — adjudicating a candidate pair, and writing prose from evidence it is
 handed. It is never asked to *know* anything, which is why a 3B model on a laptop GPU is enough.
 
-More detail: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
+More detail: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) · Presentation: [docs/RootCause-ASYNC26-Final.pptx](docs/RootCause-ASYNC26-Final.pptx)
 
 ## Quick start (Windows)
 
