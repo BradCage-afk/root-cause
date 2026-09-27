@@ -23,6 +23,9 @@ SIM_MIN = float(os.environ.get("RC_SIM_MIN", "0.30"))
 SIM_MIN_HASH = float(os.environ.get("RC_SIM_MIN_HASH", "0.12"))
 TOP_K = int(os.environ.get("RC_TOP_K", "5"))
 CONF_MIN = float(os.environ.get("RC_CONF_MIN", "0.60"))
+# ADJUDICATE judge: "hybrid" averages the local model's verdict with the deterministic
+# factor-overlap score (default); "llm" trusts the model alone; "rules" never calls it.
+JUDGE = os.environ.get("RC_JUDGE", "hybrid")
 
 # Folders inside the vault the system may write to. Everything else is human-authored.
 WRITABLE_DIRS = ("clusters",)

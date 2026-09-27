@@ -43,7 +43,7 @@ with sync_playwright() as p:
     page.wait_for_selector("#clist .card")
     page.click("text=WHY THIS? >> nth=0")
     page.wait_for_selector("[id^=why-] .card")
-    page.evaluate("document.querySelector('[id^=why-] .card').scrollIntoView({block:'start'})")
+    page.evaluate("document.querySelector('[id^=why-] .card').scrollIntoView({block:'start'}); window.scrollBy(0,-90)")
     shot(page, "03-why-this-evidence")
     page.evaluate("window.scrollTo(0,0)")
     shot(page, "04-recurrence-clusters")

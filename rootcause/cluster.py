@@ -67,22 +67,30 @@ def adjudicate(a, b) -> dict:
                 f"contributing factors: {x['factors'][:1200]}")
     shared_nodes = sorted(a["nodes"] & b["nodes"])
     words, n, denom = _surface_overlap(a["factors"], b["factors"])
+    # deterministic score: blocking already guarantees a shared component/dependency;
+    # require substantial overlap in the contributing-factor language
+    rules_conf = round(min(0.95, 0.25 + 1.6 * n / denom), 2)
+    rules = {"same_cause": rules_conf >= config.CONF_MIN, "confidence": rules_conf,
+             "shared_factor": " · ".join(words), "shared_nodes": shared_nodes, "judge": "rules"}
+    if config.JUDGE == "rules":
+        return rules
     out = models.chat(JUDGE, f"REPORT A\n{card(a)}\n\nREPORT B\n{card(b)}", as_json=True,
                       model=config.JUDGE_MODEL)
-    if isinstance(out, dict) and "same_cause" in out:
-        try:
-            conf = float(out.get("confidence", 0))
-        except (TypeError, ValueError):
-            conf = 0.0
-        return {"same_cause": bool(out["same_cause"]), "confidence": round(conf, 2),
-                "shared_factor": str(out.get("shared_factor", ""))[:80],
-                "shared_nodes": shared_nodes, "judge": config.JUDGE_MODEL}
-    # deterministic fallback: shared dependency is already given by blocking;
-    # require substantial overlap in the contributing-factor language
-    ratio = n / denom
-    conf = round(min(0.95, 0.25 + 1.6 * ratio), 2)
-    return {"same_cause": conf >= config.CONF_MIN, "confidence": conf,
-            "shared_factor": " · ".join(words), "shared_nodes": shared_nodes, "judge": "rules"}
+    if not (isinstance(out, dict) and "same_cause" in out):
+        return rules  # no model, or unparseable reply
+    try:
+        llm_conf = max(0.0, min(1.0, float(out.get("confidence", 0))))
+    except (TypeError, ValueError):
+        llm_conf = 0.0
+    llm_score = llm_conf if out["same_cause"] else 0.0
+    phrase = str(out.get("shared_factor", ""))[:80] or rules["shared_factor"]
+    if config.JUDGE == "llm":
+        conf, judge = llm_score, config.JUDGE_MODEL
+    else:
+        conf, judge = round((llm_score + rules_conf) / 2, 2), f"{config.JUDGE_MODEL} + rules"
+    return {"same_cause": conf >= config.CONF_MIN, "confidence": round(conf, 2),
+            "shared_factor": phrase, "shared_nodes": shared_nodes, "judge": judge,
+            "llm_confidence": llm_score, "rules_confidence": rules_conf}
 
 
 def _next_id(con):
