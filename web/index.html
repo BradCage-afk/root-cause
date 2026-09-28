@@ -214,7 +214,7 @@ tr:last-child td{border-bottom:0}
         <button class="iconbtn" id="theme" title="Switch light / dark theme" onclick="toggleTheme()"><svg width="18" height="18"><use href="#i-moon"/></svg></button>
       </div>
     </div>
-    <div id="banner"><svg width="20" height="20" style="flex:none"><use href="#i-lock"/></svg><div id="bannertxt"></div></div>
+    <div id="banner"><svg width="20" height="20" style="flex:none"><use href="#i-lock"/></svg><div id="bannertxt" style="flex:1"></div><button class="iconbtn" id="bannerx" title="Dismiss" onclick="dismissBanner()" style="width:28px;height:28px;border-color:var(--bad-line);background:transparent;color:var(--bad)"><svg width="14" height="14"><use href="#i-x"/></svg></button></div>
 
     <div class="content">
       <section class="page on" id="overview">
@@ -359,6 +359,8 @@ function describe(e) {
   };
   return map[e.action] || [e.action, 'info'];
 }
+const bannerSeen = new Set(); let bannerIds = [], bannerTimer = null;
+function dismissBanner() { bannerIds.forEach(id => bannerSeen.add(id)); clearTimeout(bannerTimer); bannerTimer = null; $('#banner').style.display = 'none'; }
 async function status() {
   try {
     const s = await api('/api/status');
@@ -366,8 +368,11 @@ async function status() {
     $('#c-egress').innerHTML = e ? `<span class="dot bad"></span>${e} outside connection${e === 1 ? '' : 's'}` : `<span class="dot good"></span>Offline · nothing sent out`;
     $('#c-audit').innerHTML = s.audit.ok ? `<span class="dot good"></span>Audit trail intact` : `<span class="dot bad"></span>Audit trail tampered`;
     renderModel(s.model);
-    const q = s.quarantined;
+    // shown once per quarantined document: closes with × or after 15 s (it stays in the audit trail)
+    const q = s.quarantined.filter(d => !bannerSeen.has(d.id));
     $('#banner').style.display = q.length ? 'flex' : 'none';
+    if (q.length && !bannerTimer) bannerTimer = setTimeout(dismissBanner, 15000);
+    bannerIds = q.map(d => d.id);
     $('#bannertxt').innerHTML = q.map(d => `<b>Hidden instructions blocked.</b> ${esc(d.id)} tried to instruct the AI. It is quarantined: the AI never reads it and it cannot trigger any action.`).join('<br>');
     const fresh = s.events.filter(ev => ev.ts > seen);
     if (seen) fresh.forEach(ev => toast(esc(ev.text)));
@@ -574,7 +579,7 @@ async function tamper() { await post('/api/audit/tamper'); loadAudit(); status()
 /* ---------- guided demo ---------- */
 const done = new Set();
 const TASKS = [
-  ['reset', 'Start clean', 'Resets the demo data.', async () => { await post('/api/reset'); seen = Date.now() / 1000; $('#dout').innerHTML = ''; toast('Demo reset.'); }],
+  ['reset', 'Start clean', 'Resets the demo data.', async () => { await post('/api/reset'); bannerSeen.clear(); seen = Date.now() / 1000; $('#dout').innerHTML = ''; toast('Demo reset.'); }],
   ['ask', 'Ask a question', 'Grounded answer with numbered sources.', () => askQ(SUGG[0])],
   ['drop', 'Add a new incident', 'INC-301 arrives and links to past incidents.', () => drop('INC-301.md')],
   ['why', 'Show why they are linked', 'Evidence behind the link.', async () => { show('problems'); setTimeout(() => why('CLU-001'), 300); }],
