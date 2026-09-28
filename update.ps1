@@ -10,7 +10,13 @@ if (Test-Path $tmp) { Remove-Item $tmp -Recurse -Force }
 Expand-Archive $zip -DestinationPath $tmp -Force
 $src = Join-Path $tmp "root-cause-main"
 foreach ($d in "rootcause", "web", "scripts", "demo", "docs", "tests") {
-    Copy-Item (Join-Path $src $d) $here -Recurse -Force
+    $dst = Join-Path $here $d
+    # an older version of this script nested folders (web\web); remove that copy
+    $nested = Join-Path $dst $d
+    if (Test-Path $nested) { Remove-Item $nested -Recurse -Force }
+    New-Item -ItemType Directory -Force -Path $dst | Out-Null
+    # copy the folder's contents, not the folder: Copy-Item into an existing folder would nest it
+    Copy-Item (Join-Path (Join-Path $src $d) "*") $dst -Recurse -Force
 }
 Get-ChildItem $src -File | Copy-Item -Destination $here -Force
 Remove-Item $zip -Force

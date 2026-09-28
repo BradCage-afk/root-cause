@@ -158,7 +158,8 @@ class Proposal(BaseModel):
 
 @app.get("/")
 def index():
-    return FileResponse(config.WEB_DIR / "index.html")
+    # no-cache: the browser must pick up a new UI after an update
+    return FileResponse(config.WEB_DIR / "index.html", headers={"Cache-Control": "no-cache"})
 
 
 @app.get("/api/status")
