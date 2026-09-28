@@ -1,91 +1,103 @@
-"""Drive the running UI through the demo and save screenshots to docs/screenshots/.
+"""Drive the running UI through the guided demo and save screenshots to docs/screenshots/.
 
 Start the app first (python -m rootcause.app), then:
     pip install playwright && python -m playwright install chromium
-    python scripts/screenshots.py
+    python scripts/screenshots.py [URL] [--dark]
 """
 import sys
 from pathlib import Path
 
 from playwright.sync_api import sync_playwright
 
-URL = sys.argv[1] if len(sys.argv) > 1 else "http://127.0.0.1:8000"
+args = [a for a in sys.argv[1:] if not a.startswith("--")]
+URL = args[0] if args else "http://127.0.0.1:8000"
+THEME = "dark" if "--dark" in sys.argv else "light"
 OUT = Path(__file__).resolve().parent.parent / "docs" / "screenshots"
 OUT.mkdir(parents=True, exist_ok=True)
 
 
-def shot(page, name, wait=600):
+def shot(page, name, wait=700):
     page.wait_for_timeout(wait)
+    page.evaluate("document.querySelectorAll('.toast').forEach(t => t.remove())")
     page.screenshot(path=str(OUT / f"{name}.png"), full_page=False)
     print("saved", name)
+
+
+def nav(page, p):
+    page.click(f"nav button[data-p={p}]")
+    page.wait_for_timeout(400)
+
+
+def task(page, k):
+    page.evaluate(f"runTask('{k}')")
 
 
 with sync_playwright() as p:
     b = p.chromium.launch()
     page = b.new_page(viewport={"width": 1600, "height": 1000}, device_scale_factor=1)
+    page.add_init_script(f"try{{localStorage.setItem('rc-theme','{THEME}')}}catch(e){{}}")
     page.goto(URL)
     page.request.post(f"{URL}/api/reset")
     page.reload()
-    page.wait_for_timeout(1500)
+    page.wait_for_selector("#topproblem .tl")
+    shot(page, "00-overview", wait=1000)
 
-    page.wait_for_selector("#topcl .tl")
-    shot(page, "00-overview", wait=900)
-
-    page.click("#sugg1 .chip >> nth=0")
-    page.wait_for_selector("#ans .tag")
+    task(page, "ask")
+    page.wait_for_selector("#ans .cite")
     page.click("#ans .cite >> nth=0")
     shot(page, "01-ask-cited-answer")
 
     page.fill("#q", "How many gears does a tractor have?")
     page.click("#askbtn")
-    page.wait_for_selector("#ans .refuse")
-    shot(page, "01b-ask-refusal")
+    page.wait_for_selector("#ans .callout.info")
+    shot(page, "01b-ask-not-in-records")
 
-    page.click("nav >> text=Live demo controls")
-    page.click("text=Drop a new incident")
-    page.wait_for_selector("#dout .pipe")
-    shot(page, "02-live-ingest-links-cluster")
+    task(page, "drop")
+    page.wait_for_selector("#dout .steps")
+    shot(page, "02-new-incident-linked")
 
-    page.click("nav >> text=Recurrence clusters")
-    page.wait_for_selector("#clist .tl")
-    shot(page, "04-recurrence-clusters")
-    page.click("text=WHY THIS? >> nth=0")
-    page.wait_for_selector("[id^=why-] .card")
-    page.wait_for_timeout(700)
-    page.evaluate("document.querySelector('[id^=why-] .card').scrollIntoView({block:'start'}); window.scrollBy(0,-90)")
-    shot(page, "03-why-this-evidence")
+    nav(page, "problems")
+    page.wait_for_selector("#plist .tl")
+    shot(page, "04-recurring-problems")
+    page.evaluate("why('CLU-001')")
+    page.wait_for_selector("#why-CLU-001 table")
+    page.wait_for_timeout(900)
+    page.evaluate("document.querySelector('#why-CLU-001').scrollIntoView({block:'start'}); window.scrollBy(0,-110)")
+    shot(page, "03-why-linked")
 
-    page.click("nav >> text=Failure debt")
+    nav(page, "debt")
     page.wait_for_selector("#dlist .card")
-    shot(page, "05-failure-debt-and-predictions")
+    shot(page, "05-failure-debt")
 
-    page.click("nav >> text=Pre-flight check")
-    page.click("text=Load example")
-    page.wait_for_timeout(400)
-    page.click("text=Run pre-flight")
-    page.wait_for_selector("#pout .c-amb")
-    shot(page, "06-preflight-warning")
+    task(page, "change")
+    page.wait_for_selector("#pout .callout.warn")
+    shot(page, "06-check-a-change")
 
-    page.click("nav >> text=Live demo controls")
-    page.click("text=Drop a poisoned postmortem")
+    task(page, "poison")
     page.wait_for_selector("#banner", state="visible")
-    shot(page, "07-prompt-injection-quarantined", wait=1500)
+    shot(page, "07-hidden-instructions-blocked", wait=1200)
 
-    page.click("nav >> text=Recurrence clusters")
-    page.wait_for_selector("#clist .card")
-    page.click("text=Write note to Obsidian vault >> nth=0")
-    page.wait_for_selector("#alist .card")
-    page.click("text=Try: email the vault")
-    page.wait_for_timeout(700)
-    shot(page, "08-policy-gate")
-    page.click("text=Approve >> nth=0")
+    task(page, "block")
+    page.wait_for_selector("#pending .callout.bad")
+    shot(page, "08-policy-blocks-external-send")
+    task(page, "approve")
+    page.wait_for_selector("#pending .btn.good")
+    page.click("#pending .btn.good >> nth=0")
     page.wait_for_timeout(700)
 
-    page.click("nav >> text=Audit ledger")
-    page.wait_for_selector("#alog .blk")
-    shot(page, "09-audit-chain-intact")
-    page.click("text=Tamper with an entry")
-    shot(page, "10-audit-tamper-detected", wait=900)
+    nav(page, "audit")
+    page.wait_for_selector("#events .event")
+    shot(page, "09-audit-intact")
+    task(page, "tamper")
+    page.wait_for_selector("#events .event.broken")
+    shot(page, "10-audit-tamper-detected")
+
+    nav(page, "scale")
+    page.wait_for_selector("#sout .card")
+    shot(page, "11-scale-test", wait=900)
+
+    nav(page, "demo")
+    shot(page, "12-guided-demo")
 
     page.request.post(f"{URL}/api/reset")
     b.close()

@@ -98,7 +98,7 @@ At the venue, on any Windows laptop with Python and Ollama installed:
 | Header says *Fallback mode* | Start Ollama from the Start menu; wait 10 s; refresh |
 | Answers slow (> 10 s) | Check `nvidia-smi` shows the model on the GPU; close other GPU apps; use a cooling pad |
 | Port 8000 in use | Close the other app, or edit the port at the bottom of `rootcause\app.py` |
-| Demo state is messy | **Live demo controls → Reset demo** |
+| Demo state is messy | **Guided demo → Start clean → Go** |
 | Want a clean start | Stop the app, delete the `data\` folder, run again |
 
 ## Settings (environment variables)

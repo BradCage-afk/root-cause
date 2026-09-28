@@ -21,14 +21,14 @@ It runs entirely on one laptop. Local open-weight models, no internet, no API ke
 
 | | |
 |---|---|
-| **Recurrence clusters** | Links incidents from different teams that share an underlying cause — here, a checkout outage, a search indexing lag, a gateway health-check storm and a notification failure, all tracing back to one exhausted connection pool. |
+| **Recurring problems** | Links incidents from different teams that share an underlying cause — here, a checkout outage, a search indexing lag, a gateway health-check storm and a notification failure, all tracing back to one exhausted connection pool. |
 | **Fix effectiveness** | A remediation recorded as a "permanent fix" is marked **ineffective** when the same cluster recurs after it. Pure timestamp comparison — it cannot hallucinate. |
 | **Failure debt** | Recurrence × persistence × impact × cross-team spread, ranked. Deterministic: the model does not decide how much debt exists. |
-| **Pre-flight check** | Paste a change plan. If it touches a component owned by a recurrence cluster, you get a warning with the incidents and the fixes that didn't hold. |
+| **Check a change** | Paste a change plan. If it touches a component owned by a recurrence cluster, you get a warning with the incidents and the fixes that didn't hold. |
 | **Cited answers** | Ask a question; every claim links to the chunk it came from. Out-of-scope questions get an honest *"Nothing in the record covers that."* |
 | **Prompt-injection quarantine** | Retrieved content is evidence, not authority. Documents that try to instruct the agent are quarantined before they reach a prompt. |
 | **Policy gate + MCP** | The model may propose actions; a fixed policy table decides AUTO / APPROVAL / BLOCK. The same gate applies to agents connected over MCP. |
-| **Audit ledger** | Every event is hash-chained. Edit any entry and the chain visibly breaks. |
+| **Audit trail** | Every event is hash-chained. Edit any entry and the chain visibly breaks. |
 | **Obsidian vault** | The corpus is a plain markdown vault. Approved cluster notes are written back into it with wikilinks — readable with Root Cause uninstalled. |
 | **Egress monitor** | Live count of connections from Root Cause or the model server to any non-local address. It reads zero. |
 | **Model swap** | Switch the answering model (e.g. Llama ↔ Qwen) from the header, live. Embeddings, clusters and the ledger are untouched: the brain is replaceable, the memory is yours. |
@@ -88,18 +88,21 @@ instead of written by the model.
 
 ## Run the demo
 
-Open **Live demo controls** in the sidebar, or drag files from `demo/` into the vault folder in Explorer.
+Open **Guided demo** in the sidebar. Every step has a **Go** button that jumps to the right screen,
+or drag files from `demo/` into the vault folder in Explorer.
 
-1. Header reads **Egress: 0 external connections**
-2. **Drop INC-301** → it links to three older incidents from three other teams
-3. **Recurrence clusters → WHY THIS?** → the incidents, shared dependency, evidence, and failed fixes
-4. **Failure debt** → the January "permanent fix" (REM-31) is *broken* by three recurrences
-5. **Pre-flight → Load CHG-88 → Run** → warning before the change ships
-6. **Drop PM-199** → quarantined, red banner
-7. **Actions** → the external email is **blocked**; the vault note waits for approval
-8. **Audit ledger** → chain intact → *Tamper* → chain broken
+1. Header reads **Offline · nothing sent out**
+2. **Add a new incident** (INC-301) → it links to three older incidents from three other teams
+3. **Recurring problems → Why are these linked?** → the incidents, shared dependency, evidence, and failed fixes
+4. **Failure debt** → the January "permanent fix" (REM-31) **didn't hold**: three recurrences since
+5. **Check a change** (CHG-88) → warning before the change ships
+6. **Add a poisoned document** (PM-199) → quarantined, red banner
+7. **Try a forbidden action** → the external email is **blocked**; the vault note waits for approval
+8. **Audit trail** → intact → **Tamper test** → tampering detected
 
-**Reset demo** restores the starting state. Full video script: [docs/DEMO-SCRIPT.md](docs/DEMO-SCRIPT.md)
+The moon/sun button switches between the light and dark themes.
+
+**Start clean** restores the starting state. Full video script: [docs/DEMO-SCRIPT.md](docs/DEMO-SCRIPT.md)
 
 ## Tests
 

@@ -8,7 +8,10 @@ The prototype already works end to end. The 24 hours are for three things:
 2. **Add the features that win.** Model swap, a scale proof, and a real-world importer.
 3. **Nail the demo.** Rehearse, record a backup, prepare for judges' questions.
 
-Do **not** rebuild what works. Every new feature goes in behind the 14 tests that already pass.
+Do **not** rebuild what works. Every new feature goes in behind the 16 tests that already pass.
+
+**Already done before the hackathon:** model swap, the 500-incident scale test, and a redesigned UI
+(light/dark theme, plain-language labels, a Guided demo checklist that runs every beat with one button).
 
 ---
 
@@ -21,7 +24,7 @@ Do **not** rebuild what works. Every new feature goes in behind the 14 tests tha
 
 **On every teammate's laptop:**
 - [ ] Download the repo and run `setup.bat` **at home**, so Python packages are already installed
-- [ ] Run `.venv\Scripts\python -m pytest -q` and see 14 passed
+- [ ] Run `.venv\Scripts\python -m pytest -q` and see 16 passed
 - [ ] Without a GPU, set `RC_MODE=fallback` for development; the demo laptop runs the real model
 
 **Sharing code at the venue without internet:**
@@ -40,7 +43,7 @@ Do **not** rebuild what works. Every new feature goes in behind the 14 tests tha
 | **Anshuman** (3050 laptop) | Real-model tuning + **latency measurement** + **model swap** | Replaces "target" with a measured number; proves "the brain is replaceable, the memory is yours" |
 | **Vatsal** | **Scale proof**: 500-incident generated corpus + benchmark | Backs the centroid O(clusters) claim with numbers: link time, false-cluster rate |
 | **Tharun** | **Jira / ServiceNow importer** (CSV/JSON export → vault markdown) | Shows it works on real exports, not only hand-written files |
-| **Tobie** | UI for the three features + **Obsidian graph-view** beat + deck updates | Makes the new work visible in the demo |
+| **Tobie** | Latency tile + importer screen in the new UI + **Obsidian graph-view** beat + deck updates | Makes the new work visible in the demo |
 
 ---
 
@@ -58,11 +61,12 @@ Do **not** rebuild what works. Every new feature goes in behind the 14 tests tha
 - Demo beat: ask the same question, switch model, ask again. Same citations, same clusters, different wording.
 
 ### 3. Scale proof — ✅ DONE before the hackathon (now: run it on the 3050 with `--judge hybrid`, compare recall)
-- Extend `scripts/make_corpus.py` with `--scale 500`: generate filler incidents with distinct causes across
-  more teams and components (keep the planted chains).
-- Benchmark script: time to link one new incident, and how many recurrence clusters are found.
-- Pass criteria: **still exactly the 2 planted clusters, no false links, new incident links in under 1 s.**
-- Show the result on a "Scale" card: *500 incidents · 2 clusters · 0 false links · 0.3 s per new incident*.
+- `python -m rootcause.benchmark --incidents 500` generates 500 incidents with known answers in a separate
+  database and scores the linking. Sidebar → **Scale test** shows it (and can re-run it).
+- Current numbers (rules judge): **~1 ms per new incident, 145× fewer comparisons, 90% of links correct,
+  65% of true links found.**
+- At the venue: run it on the 3050 with `--judge hybrid` and put the recall gain in the deck. If hybrid
+  is slower, report both — speed from rules, recall from the model.
 
 ### 4. Jira / ServiceNow importer — Tharun
 - `scripts/import_tickets.py export.csv` → one markdown file per ticket in `vault/incidents/` with frontmatter
@@ -87,7 +91,7 @@ Do **not** rebuild what works. Every new feature goes in behind the 14 tests tha
 |---|---|---|
 | 0–1 | Everyone runs the app and the tests offline. Anshuman runs `rootcause.check` on the 3050 | All green |
 | 1–5 | Build features 1–4 in parallel | — |
-| 5–6 | **Merge #1** on the demo laptop, run tests | 14+ tests pass |
+| 5–6 | **Merge #1** on the demo laptop, run tests | 16+ tests pass |
 | 6–12 | Finish features, add their UI, Obsidian beat | — |
 | 12–13 | **Merge #2** | Every feature visible in the UI |
 | 13–16 | Stretch goals **or** bug fixing — not both | — |
@@ -101,19 +105,23 @@ Do **not** rebuild what works. Every new feature goes in behind the 14 tests tha
 
 ---
 
-## Demo (4 minutes) — the current 8 beats plus 3 new ones
+## Demo (4 minutes) — run it from **Guided demo** in the sidebar
 
-1. Wi-Fi off → **0 external connections**
-2. Overview → the timeline and the fix that didn't hold
-3. Ask a suggested question → cited answer
-4. **NEW** Switch to Qwen, ask again → same memory, different brain
-5. Drop INC-301 → it links to three older incidents
-6. WHY THIS? → the evidence
-7. Pre-flight on CHG-88 → warning
-8. Drop the poisoned postmortem → quarantined; external email → blocked
-9. Approve the vault note → **NEW** open Obsidian graph view
-10. **NEW** Scale card: 500 incidents, still 2 clusters, sub-second linking
-11. Audit ledger → tamper → chain broken
+Each numbered step has a **Go** button that jumps to the right screen. Full lines in `docs/DEMO-SCRIPT.md`.
+Use the **light theme** on a projector in a bright hall; dark for screen recordings.
+
+1. Wi-Fi off → header says **Offline · nothing sent out**, "Data sent outside" = 0
+2. Overview → the timeline and the fixes that **didn't hold**
+3. Ask a suggested question → answer with numbered sources
+4. Switch the **AI model** dropdown to Qwen, ask again → same memory, different brain
+5. **Add a new incident** (INC-301) → links to three older incidents
+6. **Why are these linked?** → the evidence
+7. **Check a change** (CHG-88) → amber warning
+8. **Add a poisoned document** → quarantined; **Try a forbidden action** → blocked
+9. **Approve a safe action** → **NEW** open Obsidian graph view
+10. **Scale test** → 500 incidents, ~1 ms per new incident
+11. **Tamper test** → "Tampering detected"
+12. **NEW** Import a Jira CSV → tickets appear as incidents (if Tharun's importer is done)
 
 ---
 
@@ -131,7 +139,7 @@ and timestamp comparisons.
 hypothesis, and every fix becomes a prediction the timeline grades.
 
 **"Does it scale?"** A new incident is compared with cluster centroids, not every past incident — cost grows
-with the number of clusters, not incidents squared. [Show the scale card.]
+with the number of clusters, not incidents squared. [Show the Scale test page.]
 
 **"What if a document tells the AI to do something?"** Retrieved content is evidence, not authority. Injected
 instructions are quarantined, and only the policy table can authorise an action.
