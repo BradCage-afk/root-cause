@@ -101,6 +101,8 @@ def start_watcher():
                 return
             seen[p] = time.time()
             time.sleep(0.4)  # let the writer finish
+            if time.time() - RECENT.get(str(p.resolve()), 0) < 5:
+                return
             try:
                 ingest_path(p)
             except Exception as ex:  # never kill the watcher
@@ -245,6 +247,7 @@ async def upload(file: UploadFile):
         raise HTTPException(400, "markdown only")
     dest = config.VAULT / "inbox" / name
     dest.parent.mkdir(parents=True, exist_ok=True)
+    RECENT[str(dest.resolve())] = time.time()
     dest.write_bytes(await file.read())
     return ingest_path(dest, actor="operator")
 
@@ -271,6 +274,7 @@ def demo_drop(name: str):
     sub = {"INC": "incidents", "PM": "postmortems", "CHG": "changes"}.get(src.stem.split("-")[0], "inbox")
     dest = config.VAULT / sub / src.name
     dest.parent.mkdir(parents=True, exist_ok=True)
+    RECENT[str(dest.resolve())] = time.time()
     shutil.copy(src, dest)
     return ingest_path(dest, actor="operator")
 

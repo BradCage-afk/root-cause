@@ -5,324 +5,593 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Root Cause</title>
 <style>
-:root{--bg:#0b1020;--panel:#111827;--card:#1b2437;--deep:#161f31;--line:#26324a;--txt:#f4f7ff;--body:#d7e3f2;
---muted:#93a4bf;--violet:#8b5cf6;--vlt:#c4b5fd;--green:#34d399;--amber:#fbbf24;--rose:#f87171}
-*{box-sizing:border-box}html,body{margin:0;background:var(--bg);color:var(--body);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif}
-header{display:flex;align-items:center;gap:18px;padding:14px 22px;background:var(--panel);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
-.brand b{font-size:22px;letter-spacing:.06em;color:var(--txt)}.brand span{display:block;font-size:12px;color:var(--vlt)}
-.pills{margin-left:auto;display:flex;gap:10px;flex-wrap:wrap}
-.pill{padding:6px 12px;border-radius:999px;background:var(--deep);border:1px solid var(--line);font-size:13px;white-space:nowrap}
-.pill .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;vertical-align:1px}
-.ok{background:var(--green)}.warn{background:var(--amber)}.bad{background:var(--rose)}.vi{background:var(--violet)}
-#banner{display:none;margin:14px 22px 0;padding:12px 16px;border-radius:12px;background:#3a1420;border:1px solid var(--rose);color:#ffd9d9}
-.wrap{display:grid;grid-template-columns:210px 1fr 300px;gap:18px;padding:18px 22px}
-nav button{display:block;width:100%;text-align:left;margin-bottom:6px;padding:10px 14px;border-radius:10px;border:1px solid transparent;
-background:transparent;color:var(--body);font-size:15px;cursor:pointer}
-nav button.on{background:var(--card);border-color:var(--line);color:var(--txt)}
-nav small{display:block;color:var(--muted);font-size:12px;margin:14px 6px 6px;letter-spacing:.08em}
-main section{display:none}main section.on{display:block}
-h2{margin:0 0 4px;color:var(--txt);font-size:22px}.sub{color:var(--muted);margin:0 0 16px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:14px}
-.deep{background:var(--deep)}
+:root{
+  --bg:#070b16;--bg2:#0b1122;--s1:#0f1629;--s2:#141d34;--s3:#1a2542;--line:#223052;--line2:#2c3c64;
+  --txt:#eef2ff;--body:#c3cee3;--muted:#7f8fb0;--dim:#5b6a8c;
+  --vi:#8b5cf6;--vi2:#a78bfa;--vi3:#c4b5fd;--sky:#38bdf8;--tea:#2dd4bf;--grn:#34d399;--amb:#fbbf24;--ros:#fb7185;--pnk:#f472b6;
+  --r:16px;--font:"Segoe UI Variable Display","Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:"Cascadia Mono",Consolas,ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:radial-gradient(1200px 600px at 75% -10%,#1b1446 0%,transparent 60%),radial-gradient(900px 500px at -10% 110%,#0d2a3a 0%,transparent 55%),var(--bg);
+  color:var(--body);font:14.5px/1.55 var(--font);-webkit-font-smoothing:antialiased}
+a{color:var(--vi3)}
+button{font:inherit}
+.app{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
+
+/* sidebar */
+aside.side{position:sticky;top:0;height:100vh;padding:22px 16px;border-right:1px solid var(--line);
+  background:linear-gradient(180deg,rgba(15,22,41,.92),rgba(9,14,28,.92));backdrop-filter:blur(8px);display:flex;flex-direction:column}
+.logo{display:flex;align-items:center;gap:12px;padding:4px 8px 22px}
+.logo .mark{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;
+  background:linear-gradient(135deg,#7c3aed,#2563eb);box-shadow:0 8px 24px -8px #7c3aed}
+.logo b{display:block;color:var(--txt);font-size:17px;letter-spacing:.14em}
+.logo span{display:block;font-size:11.5px;color:var(--muted)}
+.nav button{display:flex;align-items:center;gap:12px;width:100%;padding:11px 12px;margin:2px 0;border:0;border-radius:12px;
+  background:transparent;color:var(--body);cursor:pointer;text-align:left;transition:.15s}
+.nav button svg{width:18px;height:18px;opacity:.75;flex:none}
+.nav button:hover{background:var(--s2)}
+.nav button.on{background:linear-gradient(90deg,rgba(139,92,246,.22),rgba(139,92,246,.04));color:var(--txt);box-shadow:inset 3px 0 0 var(--vi)}
+.nav button.on svg{opacity:1;color:var(--vi2)}
+.nav .sec{font-size:10.5px;letter-spacing:.14em;color:var(--dim);margin:18px 12px 6px}
+.side .foot{margin-top:auto;padding:12px;border-radius:14px;background:var(--s1);border:1px solid var(--line);font-size:12px;color:var(--muted)}
+.side .foot b{color:var(--txt)}
+
+/* top bar */
+main{min-width:0}
+.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:14px;padding:16px 30px;
+  background:rgba(7,11,22,.72);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.top h1{margin:0;font-size:19px;color:var(--txt);font-weight:650}
+.top .crumb{color:var(--muted);font-size:13px}
+.pills{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.pill{display:flex;align-items:center;gap:8px;padding:7px 12px;border-radius:999px;background:var(--s1);border:1px solid var(--line);font-size:12.5px;color:var(--body);white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;flex:none}
+.d-ok{background:var(--grn);box-shadow:0 0 0 4px rgba(52,211,153,.14)}
+.d-vi{background:var(--vi2);box-shadow:0 0 0 4px rgba(167,139,250,.16)}
+.d-am{background:var(--amb);box-shadow:0 0 0 4px rgba(251,191,36,.14)}
+.d-bad{background:var(--ros);box-shadow:0 0 0 4px rgba(251,113,133,.16)}
+#banner{display:none;margin:18px 30px 0;padding:14px 18px;border-radius:14px;border:1px solid rgba(251,113,133,.5);
+  background:linear-gradient(90deg,rgba(127,29,29,.55),rgba(76,5,25,.35));color:#ffe4e6;display:none;align-items:center;gap:14px}
+#banner svg{flex:none;color:var(--ros)}
+
+/* content */
+.page{display:none;padding:26px 30px 60px;animation:fade .25s ease}
+.page.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.h2{font-size:24px;color:var(--txt);margin:0 0 4px;font-weight:650;letter-spacing:-.01em}
+.lead{color:var(--muted);margin:0 0 22px;max-width:900px}
+.grid{display:grid;gap:16px}
+.g5{grid-template-columns:repeat(5,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:1.6fr 1fr}
+.card{background:linear-gradient(180deg,var(--s1),rgba(15,22,41,.85));border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;box-shadow:0 10px 30px -18px #000}
+.card.hl{border-color:var(--line2)}
+.eyebrow{font-size:11px;letter-spacing:.14em;color:var(--vi3);font-weight:700;text-transform:uppercase}
+.muted{color:var(--muted)}.dim{color:var(--dim)}.txt{color:var(--txt)}
+.c-grn{color:var(--grn)}.c-amb{color:var(--amb)}.c-ros{color:var(--ros)}.c-vi{color:var(--vi3)}
+
+/* KPI */
+.kpi{position:relative;overflow:hidden}
+.kpi .v{font-size:34px;font-weight:700;color:var(--txt);letter-spacing:-.02em;line-height:1.1;margin-top:6px}
+.kpi .l{font-size:12.5px;color:var(--muted)}
+.kpi .ic{position:absolute;right:14px;top:14px;width:34px;height:34px;border-radius:10px;display:grid;place-items:center;background:var(--s3);color:var(--vi2)}
+.kpi.good .v{color:var(--grn)}.kpi.warn .v{color:var(--ros)}
+
+/* buttons, inputs */
+.btn{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:12px;padding:10px 16px;font-weight:600;cursor:pointer;color:#fff;
+  background:linear-gradient(135deg,#7c3aed,#6d28d9);box-shadow:0 8px 20px -10px #7c3aed;transition:.15s}
+.btn:hover{filter:brightness(1.12);transform:translateY(-1px)}
+.btn.ghost{background:var(--s2);border:1px solid var(--line2);box-shadow:none;color:var(--body)}
+.btn.red{background:linear-gradient(135deg,#e11d48,#9f1239);box-shadow:0 8px 20px -10px #e11d48}
+.btn.green{background:linear-gradient(135deg,#059669,#047857);box-shadow:0 8px 20px -10px #059669}
+.btn.sm{padding:7px 12px;font-size:13px;border-radius:10px}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-input,textarea{width:100%;background:var(--deep);color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font:inherit}
-textarea{min-height:96px}
-.btn{background:var(--violet);color:#fff;border:0;border-radius:10px;padding:10px 16px;font-weight:600;cursor:pointer}
-.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--body)}.btn.red{background:#7f1d1d}.btn.green{background:#065f46}
-.chip{display:inline-block;padding:3px 10px;border-radius:999px;background:var(--deep);border:1px solid var(--line);font-size:13px;margin:2px 4px 2px 0;cursor:default}
-.cite{cursor:pointer;color:var(--vlt);border-color:#4c3b8a}
-.tag{font-size:12px;letter-spacing:.08em;color:var(--vlt);font-weight:700}
-.muted{color:var(--muted)}.red{color:var(--rose)}.grn{color:var(--green)}.amb{color:var(--amber)}
-.hyp{font-size:18px;color:var(--txt);font-weight:600}
-.members{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
-.mem{background:var(--deep);border:1px solid var(--line);border-radius:10px;padding:8px 12px;min-width:150px}
-.mem b{color:var(--txt)}
-.bar{height:10px;border-radius:6px;background:var(--deep);overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--violet),var(--rose))}
-table{width:100%;border-collapse:collapse;font-size:14px}td,th{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
-th{color:var(--muted);font-weight:600}
-.evi{white-space:pre-wrap;font-size:13.5px;background:var(--deep);border-radius:10px;padding:10px 12px;margin:8px 0;border-left:0}
-.hash{font-family:ui-monospace,Consolas,monospace;font-size:12px;color:var(--muted)}
-aside .card{padding:12px 14px}#events div{font-size:13px;padding:6px 0;border-bottom:1px solid var(--line)}
-.drop{border:2px dashed var(--line);border-radius:14px;padding:22px;text-align:center;color:var(--muted)}
-.drop.over{border-color:var(--violet);color:var(--vlt)}
-.big{font-size:40px;font-weight:800;color:var(--txt);line-height:1}
-@media(max-width:1100px){.wrap{grid-template-columns:1fr}aside{order:3}}
+.ask{display:flex;gap:10px;padding:8px;border-radius:16px;background:var(--s1);border:1px solid var(--line2)}
+.ask input{flex:1;background:transparent;border:0;outline:0;color:var(--txt);font:inherit;font-size:16px;padding:10px 12px}
+textarea{width:100%;min-height:110px;background:var(--s1);color:var(--txt);border:1px solid var(--line2);border-radius:14px;padding:14px 16px;font:inherit;font-size:15px;outline:0;resize:vertical}
+textarea:focus,.ask:focus-within{border-color:var(--vi);box-shadow:0 0 0 4px rgba(139,92,246,.15)}
+
+.chip{display:inline-flex;align-items:center;gap:6px;padding:4px 11px;border-radius:999px;background:var(--s2);border:1px solid var(--line2);font-size:12.5px;color:var(--body);margin:3px 6px 3px 0;white-space:nowrap}
+.chip.click{cursor:pointer;transition:.15s}.chip.click:hover{border-color:var(--vi);color:var(--txt)}
+.cite{cursor:pointer;background:rgba(139,92,246,.14);border-color:rgba(139,92,246,.45);color:var(--vi3);font-weight:600;padding:1px 9px;margin:0 2px;vertical-align:1px}
+.cite:hover{background:rgba(139,92,246,.3)}
+.tag{display:inline-block;padding:2px 9px;border-radius:7px;font-size:11px;font-weight:700;letter-spacing:.06em}
+.t-ok{background:rgba(52,211,153,.14);color:var(--grn)}.t-bad{background:rgba(251,113,133,.14);color:var(--ros)}
+.t-am{background:rgba(251,191,36,.14);color:var(--amb)}.t-vi{background:rgba(139,92,246,.18);color:var(--vi3)}
+
+/* answer */
+.answer{font-size:17px;line-height:1.7;color:var(--txt)}
+.meta{display:flex;gap:14px;align-items:center;color:var(--muted);font-size:12.5px;margin-bottom:10px}
+.src{border-left:3px solid var(--vi);background:var(--s2);border-radius:0 12px 12px 0;padding:12px 14px;margin:10px 0;white-space:pre-wrap;font-size:13.5px;color:var(--body)}
+.src b{color:var(--txt)}
+.evlist .src{border-left-color:var(--line2)}
+.refuse{display:flex;gap:14px;align-items:flex-start;border-color:rgba(56,189,248,.35)}
+.refuse .ic{color:var(--sky);flex:none}
+
+/* clusters */
+.cl-head{display:flex;gap:16px;align-items:flex-start;justify-content:space-between}
+.hyp{font-size:20px;color:var(--txt);font-weight:650;margin:4px 0 6px;letter-spacing:-.01em}
+.debt-ring{flex:none;width:96px;height:96px;position:relative}
+.debt-ring svg{transform:rotate(-90deg)}
+.debt-ring .n{position:absolute;inset:0;display:grid;place-items:center;text-align:center;color:var(--txt);font-weight:700;font-size:24px;line-height:1}
+.debt-ring .n small{display:block;font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.1em;margin-top:3px}
+.tl{margin:14px 0 4px;background:var(--bg2);border:1px solid var(--line);border-radius:14px;padding:6px 8px}
+.fix{display:flex;gap:12px;align-items:center;padding:10px 12px;border-radius:12px;background:var(--s2);margin-top:8px}
+table{width:100%;border-collapse:collapse}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top;font-size:13.5px}
+th{color:var(--muted);font-weight:600;font-size:12px;letter-spacing:.04em}
+.mono{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.bar{height:8px;border-radius:99px;background:var(--s3);overflow:hidden}.bar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#8b5cf6,#fb7185)}
+.formula{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:12px}
+.formula .f{background:var(--s2);border:1px solid var(--line2);border-radius:10px;padding:6px 10px;text-align:center}
+.formula .f b{display:block;color:var(--txt);font-size:16px}.formula .f span{font-size:11px;color:var(--muted)}
+.formula .x{color:var(--dim);font-weight:700}
+
+/* pipeline trace */
+.pipe{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+.step{background:var(--s2);border:1px solid var(--line2);border-radius:12px;padding:12px 14px;position:relative}
+.step .k{font-size:11px;letter-spacing:.12em;color:var(--vi3);font-weight:700}
+.step .v{color:var(--txt);font-weight:600;margin-top:4px}
+.step.win{border-color:rgba(52,211,153,.5);background:linear-gradient(180deg,rgba(6,78,59,.35),var(--s2))}
+.drop{border:2px dashed var(--line2);border-radius:16px;padding:26px;text-align:center;color:var(--muted);transition:.15s}
+.drop.over{border-color:var(--vi);color:var(--vi3);background:rgba(139,92,246,.06)}
+.demo-btn{display:flex;gap:14px;align-items:flex-start;text-align:left;width:100%;padding:18px;border-radius:16px;border:1px solid var(--line2);
+  background:var(--s1);color:var(--body);cursor:pointer;transition:.15s}
+.demo-btn:hover{border-color:var(--vi);transform:translateY(-1px)}
+.demo-btn .n{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;font-weight:700;color:#fff;flex:none}
+.demo-btn b{color:var(--txt);display:block;font-size:15px}
+
+/* policy lanes */
+.lanes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.lane{border-radius:14px;padding:14px;border:1px solid var(--line)}
+.lane h4{margin:0 0 8px;font-size:12px;letter-spacing:.12em}
+.lane.auto{background:rgba(6,78,59,.22);border-color:rgba(52,211,153,.3)}.lane.auto h4{color:var(--grn)}
+.lane.appr{background:rgba(120,53,15,.2);border-color:rgba(251,191,36,.3)}.lane.appr h4{color:var(--amb)}
+.lane.block{background:rgba(127,29,29,.22);border-color:rgba(251,113,133,.35)}.lane.block h4{color:var(--ros)}
+.act{display:flex;gap:14px;align-items:flex-start}
+.act .ic{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;flex:none}
+.diff{font-family:var(--mono);font-size:12.5px;background:var(--bg2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:10px 0;color:#a7f3d0}
+
+/* audit chain */
+.chain{position:relative;margin-left:10px}
+.blk{position:relative;display:grid;grid-template-columns:44px minmax(0,1fr) 190px;gap:14px;align-items:center;padding:10px 14px;margin:0 0 10px 18px;
+  background:var(--s1);border:1px solid var(--line);border-radius:12px}
+.blk:before{content:"";position:absolute;left:-19px;top:-12px;bottom:-12px;width:2px;background:var(--line2)}
+.blk:after{content:"";position:absolute;left:-24px;top:50%;width:12px;height:12px;margin-top:-6px;border-radius:50%;background:var(--vi);box-shadow:0 0 0 4px var(--bg)}
+.blk.broken{border-color:var(--ros);background:rgba(127,29,29,.25)}.blk.broken:after{background:var(--ros)}
+.blk .id{font-weight:700;color:var(--txt)}
+.seal{display:flex;gap:16px;align-items:center}
+.seal .big{width:64px;height:64px;border-radius:18px;display:grid;place-items:center;flex:none}
+
+/* activity + toast */
+.feed div{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+.feed div:last-child{border:0}
+#toasts{position:fixed;right:22px;bottom:22px;z-index:50;display:flex;flex-direction:column;gap:10px}
+.toast{min-width:280px;max-width:380px;padding:12px 16px;border-radius:14px;background:var(--s2);border:1px solid var(--line2);color:var(--txt);
+  box-shadow:0 20px 40px -14px #000;animation:tin .3s ease}
+.toast.link{border-color:rgba(251,191,36,.55)}.toast.danger{border-color:rgba(251,113,133,.6)}
+@keyframes tin{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.spin{width:16px;height:16px;border:2px solid var(--line2);border-top-color:var(--vi2);border-radius:50%;animation:sp .8s linear infinite;display:inline-block;vertical-align:-3px}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media(max-width:1250px){.g5{grid-template-columns:repeat(3,1fr)}.g2,.g3{grid-template-columns:1fr}.pipe{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
-<header>
-  <div class="brand"><b>ROOT CAUSE</b><span>Sovereign causal memory for operations</span></div>
-  <div class="pills">
-    <div class="pill" id="p-egress"><span class="dot ok"></span>Egress: 0</div>
-    <div class="pill" id="p-model"><span class="dot vi"></span>Model: …</div>
-    <div class="pill" id="p-audit"><span class="dot ok"></span>Audit: …</div>
-  </div>
-</header>
-<div id="banner"></div>
-<div class="wrap">
-  <nav>
-    <button data-t="ask" class="on">Ask</button>
-    <button data-t="clusters">Recurrence clusters</button>
-    <button data-t="debt">Failure debt</button>
-    <button data-t="pre">Pre-flight check</button>
-    <button data-t="act">Actions &amp; policy</button>
-    <button data-t="audit">Audit ledger</button>
-    <small>DEMO</small>
-    <button data-t="demo">Live demo controls</button>
-  </nav>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></symbol>
+  <symbol id="i-ask" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 21l1.9-5.4A8 8 0 1 1 21 12z"/></symbol>
+  <symbol id="i-net" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2.5"/><circle cx="5" cy="18" r="2.5"/><circle cx="19" cy="18" r="2.5"/><path d="M12 7.5v4M12 11.5l-5.2 4.6M12 11.5l5.2 4.6"/></symbol>
+  <symbol id="i-debt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></symbol>
+  <symbol id="i-plane" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3 7h7l-5.5 4.5 2 7.5L12 16.5 5.5 21l2-7.5L2 9h7z"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></symbol>
+  <symbol id="i-chain" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M10 8l6 4-6 4z"/></symbol>
+  <symbol id="i-warn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></symbol>
+  <symbol id="i-ok" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M8 13h8M8 17h6"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9z"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></symbol>
+</svg>
+<div class="app">
+  <aside class="side">
+    <div class="logo">
+      <div class="mark"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M12 3v7M12 10c-3 0-5 2-5 5v5M12 10c3 0 5 2 5 5v5M12 10v10"/></svg></div>
+      <div><b>ROOT CAUSE</b><span>Sovereign causal memory</span></div>
+    </div>
+    <nav class="nav">
+      <button data-p="overview" class="on"><svg><use href="#i-home"/></svg>Overview</button>
+      <button data-p="ask"><svg><use href="#i-ask"/></svg>Ask</button>
+      <button data-p="clusters"><svg><use href="#i-net"/></svg>Recurrence clusters</button>
+      <button data-p="debt"><svg><use href="#i-debt"/></svg>Failure debt</button>
+      <button data-p="pre"><svg><use href="#i-plane"/></svg>Pre-flight check</button>
+      <button data-p="act"><svg><use href="#i-shield"/></svg>Actions &amp; policy</button>
+      <button data-p="audit"><svg><use href="#i-chain"/></svg>Audit ledger</button>
+      <div class="sec">DEMO</div>
+      <button data-p="demo"><svg><use href="#i-play"/></svg>Live demo controls</button>
+    </nav>
+    <div class="foot" id="foot">Loading…</div>
+  </aside>
 
   <main>
-    <section id="ask" class="on">
-      <h2>Ask the organisation's memory</h2>
-      <p class="sub">Answers come only from retrieved evidence. Every claim cites its source chunk.</p>
-      <div class="card"><div class="row">
-        <input id="q" placeholder="What caused the checkout timeouts in January?">
-        <button class="btn" onclick="ask()">Ask</button></div></div>
+    <div class="top">
+      <div><h1 id="ptitle">Overview</h1><div class="crumb" id="psub">Your organisation's operational memory</div></div>
+      <div class="pills">
+        <div class="pill" id="p-egress"><span class="dot d-ok"></span>Egress 0</div>
+        <div class="pill" id="p-model"><span class="dot d-vi"></span>Model</div>
+        <div class="pill" id="p-audit"><span class="dot d-ok"></span>Audit</div>
+      </div>
+    </div>
+    <div id="banner"><svg width="26" height="26"><use href="#i-lock"/></svg><div id="bannertxt"></div></div>
+
+    <!-- OVERVIEW -->
+    <section class="page on" id="overview">
+      <div class="grid g5" id="kpis"></div>
+      <div class="grid g2" style="margin-top:16px">
+        <div class="card hl" id="topcl"></div>
+        <div class="grid" style="align-content:start">
+          <div class="card"><div class="eyebrow">Ask your memory</div>
+            <p class="muted" style="margin:6px 0 10px">Answers come only from your organisation's records — every claim cited.</p>
+            <div id="sugg1"></div></div>
+          <div class="card"><div class="eyebrow">Live activity</div><div class="feed" id="feed" style="margin-top:6px"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ASK -->
+    <section class="page" id="ask">
+      <div class="ask"><input id="q" placeholder="Ask about any incident, fix or decision in your records…">
+        <button class="btn" id="askbtn" onclick="ask()"><svg width="16" height="16"><use href="#i-bolt"/></svg>Ask</button></div>
+      <div style="margin:12px 0 18px" id="sugg2"></div>
       <div id="ans"></div>
     </section>
 
-    <section id="clusters">
-      <h2>Recurrence clusters</h2>
-      <p class="sub">Incidents linked only when three tests agree: shared component or dependency, similarity to the cluster, and an adjudication against a real member.</p>
-      <div id="clist"></div>
-    </section>
+    <!-- CLUSTERS -->
+    <section class="page" id="clusters"><div id="clist"></div></section>
 
-    <section id="debt">
-      <h2>Failure debt</h2>
-      <p class="sub">Recurrence × persistence × impact × cross-team spread. Deterministic — the model does not decide how much debt exists.</p>
+    <!-- DEBT -->
+    <section class="page" id="debt">
       <div id="dlist"></div>
-      <h2 style="margin-top:22px">Every fix is a falsifiable prediction</h2>
-      <p class="sub">Each remediation predicts its cluster stops recurring. The timeline grades it.</p>
-      <div class="card" id="preds"></div>
-      <h2 style="margin-top:22px">Decisions over time</h2>
-      <p class="sub">Bi-temporal: when a decision was true, and when it stopped being.</p>
-      <div class="card" id="decs"></div>
-    </section>
-
-    <section id="pre">
-      <h2>Pre-flight check</h2>
-      <p class="sub">Paste a change or deploy plan. Root Cause checks it against every recurrence cluster before it ships.</p>
-      <div class="card"><textarea id="chg" placeholder="Describe the change…"></textarea>
-        <div class="row" style="margin-top:10px"><button class="btn" onclick="preflight()">Run pre-flight</button>
-        <button class="btn ghost" onclick="loadChange()">Load CHG-88 (demo)</button></div></div>
-      <div id="pout"></div>
-    </section>
-
-    <section id="act">
-      <h2>Actions &amp; policy gate</h2>
-      <p class="sub">Retrieved content is evidence, not authority. The model may propose; only policy decides.</p>
-      <div class="card" id="matrix"></div>
-      <div class="card deep"><div class="tag">TRY IT</div>
-        <div class="row" style="margin-top:8px">
-          <button class="btn ghost" onclick="propose('send_external_email',{to:'ops-archive@external-domain.example'})">Propose: email vault to external address</button>
-          <button class="btn ghost" onclick="propose('delete_document',{id:'PM-102'})">Propose: delete PM-102</button>
-        </div></div>
-      <div id="alist"></div>
-    </section>
-
-    <section id="audit">
-      <h2>Audit ledger</h2>
-      <p class="sub">Append-only. Each entry contains the hash of the one before it; editing any entry breaks the chain.</p>
-      <div class="card row" id="vstat"></div>
-      <div class="card" id="alog"></div>
-    </section>
-
-    <section id="demo">
-      <h2>Live demo controls</h2>
-      <p class="sub">Or drag files straight into the vault folder in Explorer — the watcher ingests them live.</p>
-      <div class="card">
-        <div class="row">
-          <button class="btn" onclick="drop('INC-301.md')">① Drop new incident INC-301</button>
-          <button class="btn red" onclick="drop('PM-199-poisoned.md')">② Drop poisoned postmortem PM-199</button>
-          <button class="btn ghost" onclick="reset()">Reset demo</button>
-        </div>
+      <div class="grid g2" style="margin-top:16px">
+        <div class="card"><div class="eyebrow">Every fix is a falsifiable prediction</div><div id="preds"></div></div>
+        <div class="card"><div class="eyebrow">Decisions over time · bi-temporal</div><div id="decs"></div></div>
       </div>
-      <div class="drop" id="dz">Drop a markdown incident, ticket or postmortem here</div>
-      <div id="dout" style="margin-top:14px"></div>
+    </section>
+
+    <!-- PREFLIGHT -->
+    <section class="page" id="pre">
+      <div class="card">
+        <div class="eyebrow">Planned change</div>
+        <textarea id="chg" style="margin-top:10px" placeholder="Describe a change or deploy plan…"></textarea>
+        <div class="row" style="margin-top:12px">
+          <button class="btn" onclick="preflight()"><svg width="16" height="16"><use href="#i-plane"/></svg>Run pre-flight</button>
+          <button class="btn ghost" onclick="loadChange()">Load example: CHG-88</button></div>
+      </div>
+      <div id="pout" style="margin-top:16px"></div>
+    </section>
+
+    <!-- ACTIONS -->
+    <section class="page" id="act">
+      <div class="card"><div class="eyebrow">Policy table — the only authority</div>
+        <p class="muted" style="margin:6px 0 14px">The model may propose. Policy decides. No document, prompt or MCP client can change this table.</p>
+        <div class="lanes" id="lanes"></div>
+        <div class="row" style="margin-top:14px">
+          <button class="btn ghost sm" onclick="propose('send_external_email',{to:'ops-archive@external-domain.example'})">Try: email the vault to an outside address</button>
+          <button class="btn ghost sm" onclick="propose('delete_document',{id:'PM-102'})">Try: delete a postmortem</button>
+        </div></div>
+      <div id="alist" style="margin-top:16px"></div>
+    </section>
+
+    <!-- AUDIT -->
+    <section class="page" id="audit">
+      <div class="card" id="vstat"></div>
+      <div class="chain" id="alog" style="margin-top:18px"></div>
+    </section>
+
+    <!-- DEMO -->
+    <section class="page" id="demo">
+      <div class="grid g3">
+        <button class="demo-btn" onclick="drop('INC-301.md')"><div class="n" style="background:linear-gradient(135deg,#7c3aed,#2563eb)">1</div>
+          <div><b>Drop a new incident</b><span class="muted">INC-301 · notifications team · July</span></div></button>
+        <button class="demo-btn" onclick="drop('PM-199-poisoned.md')"><div class="n" style="background:linear-gradient(135deg,#e11d48,#9f1239)">2</div>
+          <div><b>Drop a poisoned postmortem</b><span class="muted">PM-199 · contains hidden instructions</span></div></button>
+        <button class="demo-btn" onclick="reset()"><div class="n" style="background:var(--s3)">↺</div>
+          <div><b>Reset demo</b><span class="muted">Back to the starting state</span></div></button>
+      </div>
+      <div class="drop" id="dz" style="margin-top:16px">Or drag any markdown incident, ticket or postmortem here — or into the vault folder in Explorer</div>
+      <div id="dout" style="margin-top:16px"></div>
     </section>
   </main>
-
-  <aside>
-    <div class="card"><div class="tag">LIVE</div><div id="events"></div></div>
-    <div class="card"><div class="tag">MEMORY</div><div id="counts" class="muted" style="margin-top:6px"></div></div>
-  </aside>
 </div>
+<div id="toasts"></div>
 
 <script>
 const $ = s => document.querySelector(s);
 const api = async (u, o) => { const r = await fetch(u, o); if (!r.ok) throw new Error(await r.text()); return r.json(); };
 const post = (u, b) => api(u, {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(b || {})});
-const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+const ico = (id, sz = 16) => `<svg width="${sz}" height="${sz}"><use href="#i-${id}"/></svg>`;
+const TEAM = {payments: '#a78bfa', search: '#38bdf8', platform: '#2dd4bf', notifications: '#f472b6'};
+const teamc = t => TEAM[t] || '#94a3b8';
+const fmt = d => new Date(d).toLocaleDateString('en-GB', {day: 'numeric', month: 'short'});
+const SUGG = ['What caused the checkout timeouts in January?', 'Why did search indexing fall behind?',
+  'Why do internal certificates keep expiring?', 'What is pgbouncer-main and who uses it?', 'What did ADR-019 change?'];
+const PAGES = {
+  overview: ['Overview', "Your organisation's operational memory"],
+  ask: ['Ask', 'Grounded answers from your own records — nothing else'],
+  clusters: ['Recurrence clusters', 'Incidents from different teams that share one underlying cause'],
+  debt: ['Failure debt', 'Recurrence × persistence × impact × spread — arithmetic, not a model opinion'],
+  pre: ['Pre-flight check', 'Memory that arrives before the change ships'],
+  act: ['Actions & policy', 'Retrieved content is evidence, not authority'],
+  audit: ['Audit ledger', 'Every event sealed into a hash chain'],
+  demo: ['Live demo controls', 'Drive the demo — or drop files straight into the vault'],
+};
 
-document.querySelectorAll('nav button').forEach(b => b.onclick = () => show(b.dataset.t));
-function show(t) {
-  document.querySelectorAll('nav button').forEach(x => x.classList.toggle('on', x.dataset.t === t));
-  document.querySelectorAll('main section').forEach(x => x.classList.toggle('on', x.id === t));
-  ({clusters: loadClusters, debt: loadDebt, act: loadActions, audit: loadAudit})[t]?.();
+document.querySelectorAll('.nav button').forEach(b => b.onclick = () => show(b.dataset.p));
+function show(p) {
+  document.querySelectorAll('.nav button').forEach(x => x.classList.toggle('on', x.dataset.p === p));
+  document.querySelectorAll('.page').forEach(x => x.classList.toggle('on', x.id === p));
+  $('#ptitle').textContent = PAGES[p][0]; $('#psub').textContent = PAGES[p][1];
+  ({overview: loadOverview, clusters: loadClusters, debt: loadDebt, act: loadActions, audit: loadAudit})[p]?.();
+  window.scrollTo(0, 0);
 }
+const suggHTML = () => SUGG.map(q => `<span class="chip click" onclick="askQ('${q.replace(/'/g, "\\'")}')">${ico('ask', 13)} ${esc(q)}</span>`).join('');
+$('#sugg1').innerHTML = suggHTML(); $('#sugg2').innerHTML = suggHTML();
 
+/* ---------------- status + toasts ---------------- */
+let seen = 0, lastStatus = null;
+function toast(text, kind) {
+  const t = document.createElement('div'); t.className = 'toast ' + (kind || '');
+  t.innerHTML = text; $('#toasts').appendChild(t); setTimeout(() => t.remove(), 5200);
+}
 async function status() {
   try {
-    const s = await api('/api/status');
+    const s = await api('/api/status'); lastStatus = s;
     const e = s.egress.external_connections;
-    $('#p-egress').innerHTML = `<span class="dot ${e ? 'bad' : 'ok'}"></span>Egress: ${e} external connection${e === 1 ? '' : 's'}`;
+    $('#p-egress').innerHTML = `<span class="dot ${e ? 'd-bad' : 'd-ok'}"></span>Egress · ${e} external connection${e === 1 ? '' : 's'}`;
     const m = s.model;
     $('#p-model').innerHTML = m.mode === 'ollama'
-      ? `<span class="dot vi"></span>Local model: ${esc(m.chat_model)} · ${esc(m.embed_model)}`
-      : `<span class="dot warn"></span>Fallback mode (no model running)`;
-    $('#p-audit').innerHTML = `<span class="dot ${s.audit.ok ? 'ok' : 'bad'}"></span>Audit: ${s.audit.ok ? 'chain intact' : 'CHAIN BROKEN'}`;
+      ? `<span class="dot d-vi"></span>Local model · ${esc(m.chat_model)}` : `<span class="dot d-am"></span>Fallback mode · no model`;
+    $('#p-audit').innerHTML = `<span class="dot ${s.audit.ok ? 'd-ok' : 'd-bad'}"></span>Audit · ${s.audit.ok ? 'chain intact' : 'CHAIN BROKEN'}`;
     const q = s.quarantined;
-    $('#banner').style.display = q.length ? 'block' : 'none';
-    $('#banner').innerHTML = q.map(d => `⛔ <b>Prompt injection blocked</b> — ${esc(d.id)} quarantined (${esc(d.quarantine_reason)}). Its text never reaches the model, and it cannot authorise any action.`).join('<br>');
-    $('#counts').innerHTML = `${s.counts.documents} documents · ${s.counts.chunks} chunks<br>${s.counts.incidents} incidents · ${s.recurrence_clusters} recurrence clusters`;
-    $('#events').innerHTML = s.events.slice().reverse().map(ev =>
-      `<div class="${ev.kind === 'danger' ? 'red' : ev.kind === 'link' ? 'amb' : ''}">${esc(ev.text)}</div>`).join('') || '<div class="muted">No events yet</div>';
-  } catch (e) { $('#p-model').textContent = 'backend offline'; }
+    $('#banner').style.display = q.length ? 'flex' : 'none';
+    $('#bannertxt').innerHTML = q.map(d => `<b>Prompt injection blocked.</b> ${esc(d.id)} was quarantined (${esc(d.quarantine_reason)}). Its text never reaches the model and cannot authorise any action.`).join('<br>');
+    $('#foot').innerHTML = `<b>${s.counts.documents}</b> documents · <b>${s.counts.incidents}</b> incidents<br><b>${s.recurrence_clusters}</b> recurrence clusters<br><span class="dim">Runs on this machine only</span>`;
+    const fresh = s.events.filter(ev => ev.ts > seen);
+    if (seen) fresh.forEach(ev => toast(esc(ev.text), ev.kind));
+    if (s.events.length) seen = Math.max(seen, ...s.events.map(x => x.ts));
+    $('#feed').innerHTML = s.events.slice().reverse().map(ev => `<div><span class="dot ${ev.kind === 'danger' ? 'd-bad' : ev.kind === 'link' ? 'd-am' : 'd-vi'}" style="margin-top:6px"></span><span>${esc(ev.text)}</span></div>`).join('') || '<div class="muted">No events yet</div>';
+  } catch (e) { $('#p-model').innerHTML = '<span class="dot d-bad"></span>Backend offline'; }
 }
 
-async function ask() {
-  const q = $('#q').value || $('#q').placeholder;
-  $('#ans').innerHTML = '<div class="card muted">Retrieving…</div>';
-  const a = await post('/api/ask', {q});
-  const byId = Object.fromEntries(a.evidence.map(e => [e.chunk_id, e]));
-  const body = esc(a.answer).replace(/\[C(\d+)\]/g, (m, id) =>
-    byId[id] ? `<span class="chip cite" onclick="evi(${id})">${esc(byId[id].document_id)}</span>` : m);
-  window._ev = byId;
-  $('#ans').innerHTML = `<div class="card"><div class="tag">ANSWER · ${a.mode === 'llm' ? 'local model' : a.mode}</div>
-    <p style="font-size:16px;color:var(--txt)">${body}</p><div id="evbox"></div></div>
-    <div class="card deep"><div class="tag">RETRIEVED EVIDENCE (hybrid: vector + keyword, fused by reciprocal rank)</div>
-    ${a.evidence.map(e => `<div class="evi"><b>${esc(e.document_id)}</b> · ${esc(e.section)} <span class="muted">· rrf ${e.score}</span>\n${esc(e.text.slice(0, 280))}${e.text.length > 280 ? '…' : ''}</div>`).join('')}</div>`;
+/* ---------------- timeline (svg) ---------------- */
+function timeline(members, fixes, W = 900) {
+  const H = 132, pad = 36;
+  const dates = [...members.map(m => +new Date(m.opened_at)), ...fixes.map(f => +new Date(f.applied_at))];
+  const t0 = new Date(new Date(Math.min(...dates)).getFullYear(), new Date(Math.min(...dates)).getMonth(), 1).getTime();
+  const t1 = Math.max(...dates) + 20 * 864e5;
+  const X = t => pad + (t - t0) / (t1 - t0) * (W - 2 * pad);
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" style="display:block">`;
+  s += `<line x1="${pad}" y1="84" x2="${W - pad}" y2="84" stroke="#2c3c64" stroke-width="2"/>`;
+  for (let d = new Date(t0); +d < t1; d.setMonth(d.getMonth() + 1)) {
+    const x = X(+d); s += `<line x1="${x}" y1="80" x2="${x}" y2="88" stroke="#2c3c64"/><text x="${x + 3}" y="104" fill="#5b6a8c" font-size="11">${d.toLocaleDateString('en-GB', {month: 'short'})}</text>`;
+  }
+  fixes.forEach(f => {
+    const x = X(+new Date(f.applied_at)), bad = f.status === 'ineffective', c = bad ? '#fb7185' : '#34d399';
+    s += `<line x1="${x}" y1="22" x2="${x}" y2="84" stroke="${c}" stroke-width="2" stroke-dasharray="4 4"/>`;
+    s += `<rect x="${x - 34}" y="6" width="68" height="18" rx="9" fill="${bad ? 'rgba(251,113,133,.16)' : 'rgba(52,211,153,.16)'}" stroke="${c}"/>`;
+    s += `<text x="${x}" y="19" fill="${c}" font-size="10.5" font-weight="700" text-anchor="middle">${esc(f.id)} ${bad ? '✗' : '✓'}</text>`;
+  });
+  members.forEach((m, i) => {
+    const x = X(+new Date(m.opened_at)), c = teamc(m.team), up = i % 2 === 0;
+    s += `<circle cx="${x}" cy="84" r="9" fill="${c}" opacity=".22"/><circle cx="${x}" cy="84" r="5.5" fill="${c}"/>`;
+    s += `<text x="${x}" y="${up ? 58 : 124}" fill="#eef2ff" font-size="12" font-weight="700" text-anchor="middle">${esc(m.incident_id)}</text>`;
+    s += `<text x="${x}" y="${up ? 71 : 137}" fill="${c}" font-size="10.5" text-anchor="middle">${esc(m.team)}</text>`;
+  });
+  return s + '</svg>';
 }
-function evi(id) { const e = window._ev[id]; $('#evbox').innerHTML = `<div class="evi"><b>${esc(e.document_id)} · ${esc(e.section)}</b>\n${esc(e.text)}</div>`; }
+function ring(v, sz = 96) {
+  const r = sz / 2 - 8, C = 2 * Math.PI * r, off = C * (1 - v / 100);
+  return `<div class="debt-ring" style="width:${sz}px;height:${sz}px"><svg width="${sz}" height="${sz}">
+    <circle cx="${sz / 2}" cy="${sz / 2}" r="${r}" fill="none" stroke="#1a2542" stroke-width="8"/>
+    <circle cx="${sz / 2}" cy="${sz / 2}" r="${r}" fill="none" stroke="url(#rg)" stroke-width="8" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${off}"/>
+    <defs><linearGradient id="rg"><stop offset="0" stop-color="#8b5cf6"/><stop offset="1" stop-color="#fb7185"/></linearGradient></defs></svg>
+    <div class="n"><div>${v}<small>DEBT</small></div></div></div>`;
+}
+
+/* ---------------- overview ---------------- */
+async function loadOverview() {
+  const [s, cs, fx, debt] = await Promise.all([api('/api/status'), api('/api/clusters'), api('/api/fixes'), api('/api/debt')]);
+  const bad = fx.filter(f => f.status === 'ineffective').length;
+  const k = (v, l, ic, cls = '') => `<div class="card kpi ${cls}"><div class="ic">${ico(ic, 17)}</div><div class="l">${l}</div><div class="v">${v}</div></div>`;
+  $('#kpis').innerHTML = k(s.counts.documents, 'Documents in memory', 'doc') + k(s.counts.incidents, 'Incidents', 'bolt')
+    + k(cs.length, 'Recurrence clusters', 'net') + k(bad, "Fixes that didn't hold", 'x', 'warn')
+    + k(s.egress.external_connections, 'External connections', 'lock', 'good');
+  const top = debt[0];
+  if (!top) { $('#topcl').innerHTML = '<div class="muted">No recurrence clusters yet.</div>'; return; }
+  const c = cs.find(x => x.id === top.cluster), f = fx.filter(x => x.cluster_id === top.cluster);
+  $('#topcl').innerHTML = `<div class="cl-head"><div><div class="eyebrow">Highest failure debt · ${top.cluster}</div>
+      <div class="hyp">${esc(top.hypothesis)}</div>
+      <div class="muted">${c.members.length} incidents across ${c.teams.length} teams · shared dependency ${c.shared_dependencies.map(d => `<span class="chip">${esc(d)}</span>`).join('')}</div></div>
+      ${ring(top.score)}</div>
+    <div class="tl">${timeline(c.members, f)}</div>
+    ${f.filter(x => x.status === 'ineffective').map(x => `<div class="fix"><span class="tag t-bad">DIDN'T HOLD</span><div><b class="txt">${x.id}</b> <span class="muted">recorded as a ${esc(x.kind)} on ${fmt(x.applied_at)}</span> — ${esc(x.description)}<br><span class="c-ros">recurred ${x.recurrences_after.length}× after: ${x.recurrences_after.map(r => r.id).join(', ')}</span></div></div>`).join('')}
+    <div class="row" style="margin-top:14px"><button class="btn sm" onclick="show('clusters')">Open cluster</button><button class="btn ghost sm" onclick="show('pre')">Check a change against it</button></div>`;
+}
+
+/* ---------------- ask ---------------- */
+function askQ(q) { show('ask'); $('#q').value = q; ask(); }
+async function ask() {
+  const q = $('#q').value.trim() || SUGG[0]; $('#q').value = q;
+  $('#ans').innerHTML = `<div class="card"><span class="spin"></span>&nbsp; Searching your records and reasoning locally…</div>`;
+  const a = await post('/api/ask', {q});
+  const byId = Object.fromEntries(a.evidence.map(e => [e.chunk_id, e])); window._ev = byId;
+  if (a.mode === 'refusal' || a.answer.startsWith('Nothing in the record')) {
+    $('#ans').innerHTML = `<div class="card refuse"><div class="ic">${ico('info', 26)}</div><div><div class="txt" style="font-size:16px;font-weight:600">Not in your records.</div>
+      <div class="muted">Root Cause only answers from your organisation's own documents, so it doesn't guess. Try one of the questions above.</div></div></div>`;
+    return;
+  }
+  let n = 0; const map = {};
+  const body = esc(a.answer).replace(/\[C(\d+)\]/g, (m, id) => {
+    if (!byId[id]) return ''; map[id] = map[id] || ++n;
+    return `<span class="chip cite" onclick="evi(${id})" title="${esc(byId[id].document_id)} · ${esc(byId[id].section)}">${map[id]}</span>`;
+  });
+  const used = Object.keys(map).map(id => byId[id]);
+  $('#ans').innerHTML = `<div class="card hl"><div class="meta"><span class="tag t-vi">${a.mode === 'llm' ? 'LOCAL MODEL' : 'EXTRACTIVE'}</span>
+      <span>${ico('doc', 13)} grounded in ${used.length} source${used.length === 1 ? '' : 's'}</span><span>${ico('lock', 13)} computed on this machine</span></div>
+      <div class="answer">${body}</div>
+      <div style="margin-top:14px">${used.map(e => `<span class="chip click" onclick="evi(${e.chunk_id})"><b class="c-vi">${map[e.chunk_id]}</b> ${esc(e.document_id)} · ${esc(e.section)}</span>`).join('')}</div>
+      <div id="evbox"></div></div>
+    <div class="card evlist" style="margin-top:14px"><div class="eyebrow">Retrieved evidence · vector + keyword, fused by reciprocal rank</div>
+      ${a.evidence.map(e => `<div class="src"><b>${esc(e.document_id)}</b> <span class="muted">· ${esc(e.section)} · score ${e.score}</span>\n${esc(e.text.slice(0, 260))}${e.text.length > 260 ? '…' : ''}</div>`).join('')}</div>`;
+}
+function evi(id) { const e = window._ev[id]; $('#evbox').innerHTML = `<div class="src"><b>${esc(e.document_id)} · ${esc(e.section)}</b>\n${esc(e.text)}</div>`; }
 $('#q').addEventListener('keydown', e => e.key === 'Enter' && ask());
 
+/* ---------------- clusters ---------------- */
 async function loadClusters() {
-  const cs = await api('/api/clusters');
-  const fixes = await api('/api/fixes');
+  const [cs, fixes, debt] = await Promise.all([api('/api/clusters'), api('/api/fixes'), api('/api/debt')]);
+  const score = Object.fromEntries(debt.map(d => [d.cluster, d.score]));
   $('#clist').innerHTML = cs.map(c => {
-    const rems = fixes.filter(f => f.cluster_id === c.id);
-    return `<div class="card">
-      <div class="tag">${c.id} · CAUSAL HYPOTHESIS</div>
-      <div class="hyp">${esc(c.hypothesis)}</div>
-      <div class="muted">shared dependencies: ${c.shared_dependencies.map(d => `<span class="chip">${esc(d)}</span>`).join('')} · teams: ${c.teams.join(', ')}</div>
-      <div class="members">${c.members.map(m => `<div class="mem"><b>${m.incident_id}</b><br>
-        <span class="muted">${esc(m.team)} · ${m.opened_at.slice(0, 10)}</span><br>
-        <span class="muted">${esc(m.component)}</span><br>
-        ${m.verdict === 'seed' ? '<span class="tag">SEED</span>' : `<span class="grn">confidence ${m.confidence}</span>`}</div>`).join('')}</div>
-      ${rems.map(f => `<div>${f.status === 'ineffective' ? '<span class="red">✗ ineffective</span>' : '<span class="grn">✓ held</span>'}
-        <b>${f.id}</b> (${esc(f.kind)}, ${f.applied_at.slice(0, 10)}) — ${esc(f.description)}
-        ${f.recurrences_after.length ? `<span class="muted">· recurred: ${f.recurrences_after.map(x => x.id).join(', ')}</span>` : ''}</div>`).join('')}
-      <div class="row" style="margin-top:12px"><button class="btn" onclick="why('${c.id}')">WHY THIS?</button>
-        <button class="btn ghost" onclick="propose('write_cluster_note',{cluster_id:'${c.id}'})">Write note to Obsidian vault</button></div>
+    const f = fixes.filter(x => x.cluster_id === c.id);
+    return `<div class="card hl" style="margin-bottom:16px">
+      <div class="cl-head"><div><div class="eyebrow">${c.id} · causal hypothesis</div><div class="hyp">${esc(c.hypothesis)}</div>
+        <div>${c.teams.map(t => `<span class="chip"><span class="dot" style="background:${teamc(t)}"></span>${esc(t)}</span>`).join('')}
+        ${c.shared_dependencies.map(d => `<span class="chip">${ico('net', 12)} ${esc(d)}</span>`).join('')}</div></div>
+        ${ring(score[c.id] || 0, 88)}</div>
+      <div class="tl">${timeline(c.members, f)}</div>
+      ${f.map(x => `<div class="fix"><span class="tag ${x.status === 'ineffective' ? 't-bad' : 't-ok'}">${x.status === 'ineffective' ? "DIDN'T HOLD" : 'HELD'}</span>
+        <div><b class="txt">${x.id}</b> <span class="muted">${esc(x.kind)} · ${fmt(x.applied_at)}</span> — ${esc(x.description)}
+        ${x.recurrences_after.length ? `<span class="c-ros"> · recurred: ${x.recurrences_after.map(r => r.id).join(', ')}</span>` : ''}</div></div>`).join('')}
+      <div class="row" style="margin-top:14px"><button class="btn" onclick="why('${c.id}')">${ico('info', 15)} WHY THIS?</button>
+        <button class="btn ghost" onclick="propose('write_cluster_note',{cluster_id:'${c.id}'})">${ico('doc', 15)} Write note to Obsidian vault</button></div>
       <div id="why-${c.id}"></div></div>`;
   }).join('') || '<div class="card muted">No recurrence clusters yet.</div>';
 }
-
 async function why(id) {
   const w = await api(`/api/clusters/${id}/why`);
-  $('#why-' + id).innerHTML = `<div class="card deep" style="margin-top:12px">
-    <div class="tag">WHY THESE INCIDENTS WERE LINKED</div>
-    <p><b class="big">${w.incidents.length}</b> incidents · <b>${w.teams.length}</b> teams ·
-       shared dependency <span class="chip">${w.shared_dependencies.join('</span><span class="chip">')}</span> ·
-       <b>${w.evidence.length}</b> evidence chunks · <b>${w.remediations.length}</b> previous remediations</p>
+  $('#why-' + id).innerHTML = `<div class="card" style="margin-top:16px;background:var(--bg2)">
+    <div class="eyebrow">Why these incidents were linked</div>
+    <div class="grid g5" style="margin:12px 0">
+      ${[[w.incidents.length, 'incidents'], [w.teams.length, 'teams'], [w.shared_dependencies.length, 'shared dependencies'], [w.evidence.length, 'evidence chunks'], [w.remediations.length, 'past remediations']]
+        .map(([v, l]) => `<div class="card kpi" style="padding:12px 14px"><div class="l">${l}</div><div class="v" style="font-size:26px">${v}</div></div>`).join('')}</div>
     <table><tr><th>Incident</th><th>Team</th><th>Symptom</th><th>Linked by</th></tr>
-    ${w.incidents.map(i => `<tr><td><b>${i.id}</b><br><span class="muted">${i.opened_at}</span></td><td>${esc(i.team)}</td><td>${esc(i.symptom)}</td>
-      <td>${i.judge === 'seed' ? 'cluster seed' : `similarity ${i.similarity} · confidence ${i.confidence}<br><span class="muted">judge: ${esc(i.judge)}</span>`}</td></tr>`).join('')}</table>
-    <p class="muted">Shared contributing-factor terms: ${w.shared_factor_terms.map(t => `<span class="chip">${esc(t)}</span>`).join('')}</p>
-    ${w.evidence.map(e => `<div class="evi"><b>${esc(e.document_id)}</b> · ${esc(e.section)}\n${esc(e.text.slice(0, 240))}…</div>`).join('')}</div>`;
+    ${w.incidents.map(i => `<tr><td><b class="txt">${i.id}</b><br><span class="mono">${i.opened_at}</span></td>
+      <td><span class="chip"><span class="dot" style="background:${teamc(i.team)}"></span>${esc(i.team)}</span></td><td>${esc(i.symptom)}</td>
+      <td>${i.judge === 'seed' ? '<span class="tag t-vi">CLUSTER SEED</span>' : `<div class="row" style="gap:6px"><span class="tag t-ok">SAME CAUSE</span><span class="mono">sim ${i.similarity} · conf ${i.confidence}</span></div><span class="dim">judge: ${esc(i.judge)}</span>`}</td></tr>`).join('')}</table>
+    <div style="margin:12px 0 4px" class="muted">Shared contributing-factor terms: ${w.shared_factor_terms.map(t => `<span class="chip">${esc(t)}</span>`).join('')}</div>
+    ${w.evidence.map(e => `<div class="src"><b>${esc(e.document_id)}</b> <span class="muted">· ${esc(e.section)}</span>\n${esc(e.text.slice(0, 230))}…</div>`).join('')}</div>`;
+  $('#why-' + id).scrollIntoView({behavior: 'smooth', block: 'start'});
 }
 
+/* ---------------- debt ---------------- */
 async function loadDebt() {
   const [d, p, ds] = await Promise.all([api('/api/debt'), api('/api/predictions'), api('/api/decisions')]);
-  $('#dlist').innerHTML = d.map(x => `<div class="card"><div class="row"><div class="big">${x.score}</div>
-    <div style="flex:1"><div class="tag">${x.cluster}</div><div class="hyp">${esc(x.hypothesis)}</div>
-    <div class="bar"><i style="width:${x.score}%"></i></div></div></div>
-    <p class="muted" style="margin-bottom:0">recurrence <b>${x.inputs.recurrence}</b> × persistence <b>${x.inputs.persistence}</b>
-    (${x.inputs.span_days} days) × impact <b>${x.inputs.impact}</b> × spread <b>${x.inputs.spread}</b> teams
-    ${x.inputs.paid_off ? '× 0.25 (paid off)' : ''}</p></div>`).join('');
-  $('#preds').innerHTML = `<p><b class="big">${p.kept}/${p.total}</b> <span class="muted">predictions kept</span></p>
-    <table><tr><th>Remediation</th><th>Recorded as</th><th>Prediction</th><th>Outcome</th></tr>
-    ${p.predictions.map(x => `<tr><td><b>${x.remediation}</b></td><td>${esc(x.kind)}</td><td>${esc(x.predicted)}</td>
-      <td>${x.outcome === 'kept' ? '<span class="grn">kept</span>' : `<span class="red">broken</span> <span class="muted">by ${x.evidence.join(', ')}</span>`}</td></tr>`).join('')}</table>`;
-  $('#decs').innerHTML = `<table><tr><th>Decision</th><th>Valid from</th><th>Valid until</th><th>Status</th></tr>
-    ${ds.map(x => `<tr><td><b>${x.id}</b> ${esc(x.title)}</td><td>${x.valid_from}</td><td>${x.valid_until || '—'}</td>
-      <td>${x.status === 'superseded' ? `<span class="amb">superseded by ${x.superseded_by}</span>` : '<span class="grn">active</span>'}</td></tr>`).join('')}</table>`;
+  $('#dlist').innerHTML = d.map((x, i) => `<div class="card ${i ? '' : 'hl'}" style="margin-bottom:14px"><div class="cl-head">
+      <div style="flex:1"><div class="eyebrow">#${i + 1} unpaid cause · ${x.cluster}</div><div class="hyp">${esc(x.hypothesis)}</div>
+      <div class="bar" style="margin:10px 0 4px"><i style="width:${x.score}%"></i></div>
+      <div class="formula"><div class="f"><b>${x.inputs.recurrence}</b><span>recurrences</span></div><span class="x">×</span>
+        <div class="f"><b>${x.inputs.persistence}</b><span>persistence (${x.inputs.span_days} d)</span></div><span class="x">×</span>
+        <div class="f"><b>${x.inputs.impact}</b><span>impact</span></div><span class="x">×</span>
+        <div class="f"><b>${x.inputs.spread}</b><span>teams</span></div>${x.inputs.paid_off ? '<span class="x">× 0.25 paid off</span>' : ''}
+        <span class="x">→</span><div class="f" style="border-color:var(--vi)"><b>${x.score}</b><span>debt score</span></div></div></div>
+      ${ring(x.score)}</div></div>`).join('');
+  $('#preds').innerHTML = `<div class="row" style="margin:10px 0 6px"><div style="font-size:32px;font-weight:700;color:var(--txt)">${p.kept}<span class="dim">/${p.total}</span></div><div class="muted">predictions kept<br>graded by the timeline</div></div>
+    <table><tr><th>Fix</th><th>Recorded as</th><th>Outcome</th></tr>${p.predictions.map(x => `<tr><td><b class="txt">${x.remediation}</b></td><td>${esc(x.kind)}</td>
+    <td>${x.outcome === 'kept' ? '<span class="tag t-ok">KEPT</span>' : `<span class="tag t-bad">BROKEN</span> <span class="mono">by ${x.evidence.join(', ')}</span>`}</td></tr>`).join('')}</table>`;
+  $('#decs').innerHTML = `<table style="margin-top:8px"><tr><th>Decision</th><th>Valid</th><th>Status</th></tr>${ds.map(x => `<tr><td><b class="txt">${x.id}</b><br><span class="muted">${esc(x.title)}</span></td>
+    <td class="mono">${x.valid_from} →<br>${x.valid_until || 'now'}</td><td>${x.status === 'superseded' ? `<span class="tag t-am">SUPERSEDED</span><br><span class="dim">by ${x.superseded_by}</span>` : '<span class="tag t-ok">ACTIVE</span>'}</td></tr>`).join('')}</table>`;
 }
 
+/* ---------------- preflight ---------------- */
 async function loadChange() { $('#chg').value = (await api('/api/demo/text/CHG-88.md')).text; }
 async function preflight() {
+  if (!$('#chg').value.trim()) await loadChange();
+  $('#pout').innerHTML = `<div class="card"><span class="spin"></span>&nbsp; Checking the change against every recurrence cluster…</div>`;
   const r = await post('/api/preflight', {text: $('#chg').value});
-  $('#pout').innerHTML = r.level === 'clear' ? `<div class="card"><span class="grn">✓ Clear.</span> ${esc(r.message)}</div>`
-    : `<div class="card" style="border-color:var(--amber)"><div class="tag" style="color:var(--amber)">⚠ PRE-FLIGHT WARNING</div>
-      <p style="color:var(--txt);font-size:16px">${esc(r.message)}</p>
-      <p class="muted">Touches: ${r.touched.map(t => `<span class="chip">${esc(t)}</span>`).join('')}</p>
-      ${r.hits.map(h => `<div class="card deep"><b>${h.cluster}</b> — ${esc(h.hypothesis)} · debt ${h.debt}<br>
-        ${h.incidents.map(i => `<span class="chip">${i.id} · ${esc(i.team)} · ${i.opened_at}</span>`).join('')}
-        ${h.failed_fixes.map(f => `<div class="red" style="margin-top:6px">✗ ${f.id} did not hold — recurred: ${f.recurred.join(', ')}</div>`).join('')}</div>`).join('')}</div>`;
+  $('#pout').innerHTML = r.level === 'clear'
+    ? `<div class="card" style="border-color:rgba(52,211,153,.45)"><div class="row"><span class="c-grn">${ico('ok', 24)}</span><b class="txt">Clear to ship.</b> <span class="muted">${esc(r.message)}</span></div></div>`
+    : `<div class="card" style="border-color:rgba(251,191,36,.6);background:linear-gradient(180deg,rgba(120,53,15,.28),var(--s1))">
+      <div class="row" style="gap:14px"><span class="c-amb">${ico('warn', 34)}</span><div><div class="eyebrow" style="color:var(--amb)">Pre-flight warning</div>
+      <div class="txt" style="font-size:17px;font-weight:600;margin-top:2px">${esc(r.message)}</div></div></div>
+      <div style="margin:12px 0">${r.touched.map(t => `<span class="chip">${ico('net', 12)} ${esc(t)}</span>`).join('')}</div>
+      ${r.hits.map(h => `<div class="card" style="background:var(--bg2);margin-top:10px"><div class="row" style="justify-content:space-between"><div><div class="eyebrow">${h.cluster}</div><div class="hyp" style="font-size:17px">${esc(h.hypothesis)}</div></div><span class="tag t-bad">DEBT ${h.debt}</span></div>
+        <div style="margin-top:8px">${h.incidents.map(i => `<span class="chip"><span class="dot" style="background:${teamc(i.team)}"></span>${i.id} · ${esc(i.team)} · ${fmt(i.opened_at)}</span>`).join('')}</div>
+        ${h.failed_fixes.map(f => `<div class="fix"><span class="tag t-bad">DIDN'T HOLD</span><div><b class="txt">${f.id}</b> — ${esc(f.description)} <span class="c-ros">· recurred: ${f.recurred.join(', ')}</span></div></div>`).join('')}</div>`).join('')}</div>`;
 }
 
+/* ---------------- actions ---------------- */
 async function propose(tool, args) {
   const a = await post('/api/actions', {tool, args});
   show('act');
-  if (a.status === 'blocked') flash(`⛔ Blocked by policy: ${tool} — ${a.reason}`);
+  if (a.status === 'blocked') toast(`${ico('x', 14)} <b>Blocked by policy</b> — ${esc(tool)}: ${esc(a.reason)}`, 'danger');
+  else if (a.status === 'pending') toast(`<b>Waiting for approval</b> — ${esc(tool)}`, 'link');
 }
-function flash(t) { const d = document.createElement('div'); d.className = 'card'; d.style.borderColor = 'var(--rose)'; d.innerHTML = `<b class="red">${esc(t)}</b>`; $('#alist').prepend(d); }
-
 async function loadActions() {
   const r = await api('/api/actions');
-  $('#matrix').innerHTML = `<div class="tag">POLICY TABLE</div><table><tr><th>Tool</th><th>Permission</th><th>Risk</th><th>Policy</th></tr>
-    ${Object.entries(r.tools).map(([t, x]) => `<tr><td>${t}</td><td>${x.permission}</td><td>${x.risk}</td>
-    <td class="${x.policy === 'BLOCK' ? 'red' : x.policy === 'AUTO' ? 'grn' : 'amb'}">${x.policy}</td></tr>`).join('')}</table>`;
-  $('#alist').innerHTML = r.actions.map(a => `<div class="card"><div class="row"><b>#${a.id} ${a.tool}</b>
-    <span class="chip">${a.permission} · ${a.risk}</span>
-    <span class="${a.status === 'blocked' || a.status === 'rejected' ? 'red' : a.status === 'executed' ? 'grn' : 'amb'}">${a.status.toUpperCase()}</span></div>
-    <div class="muted">${esc(JSON.stringify(a.args))} · ${esc(a.reason)}</div>
-    ${a.status === 'pending' ? `<div class="evi">Proposed change: ${a.tool === 'write_cluster_note' ? `write vault/clusters/${esc(a.args.cluster_id)}.md (new file, clusters/ only)` : esc(JSON.stringify(a.args))}</div>
-      <div class="row"><button class="btn green" onclick="decideA(${a.id},'approve')">Approve</button>
-      <button class="btn ghost" onclick="decideA(${a.id},'reject')">Reject</button></div>` : ''}
-    ${a.result ? `<div class="muted">result: ${esc(a.result)}</div>` : ''}</div>`).join('');
+  const lane = (cls, name, pol) => `<div class="lane ${cls}"><h4>${name}</h4>${Object.entries(r.tools).filter(([t, x]) => x.policy === pol)
+    .map(([t, x]) => `<div style="margin:6px 0"><b class="txt">${t}</b><div class="mono">${x.permission} · ${x.risk} risk</div></div>`).join('')}</div>`;
+  $('#lanes').innerHTML = lane('auto', 'AUTO', 'AUTO') + lane('appr', 'NEEDS APPROVAL', 'APPROVAL') + lane('block', 'ALWAYS BLOCKED', 'BLOCK');
+  const st = {blocked: ['t-bad', 'x', 'rgba(251,113,133,.15)', 'var(--ros)'], rejected: ['t-bad', 'x', 'rgba(251,113,133,.15)', 'var(--ros)'],
+    executed: ['t-ok', 'ok', 'rgba(52,211,153,.15)', 'var(--grn)'], pending: ['t-am', 'warn', 'rgba(251,191,36,.15)', 'var(--amb)'], approved: ['t-ok', 'ok', 'rgba(52,211,153,.15)', 'var(--grn)']};
+  $('#alist').innerHTML = r.actions.map(a => { const [t, ic, bg, fg] = st[a.status] || st.pending;
+    return `<div class="card" style="margin-bottom:12px"><div class="act"><div class="ic" style="background:${bg};color:${fg}">${ico(ic, 18)}</div><div style="flex:1">
+      <div class="row"><b class="txt">${esc(a.tool)}</b><span class="tag ${t}">${a.status.toUpperCase()}</span><span class="mono">#${a.id} · ${a.permission} · ${a.risk}</span></div>
+      <div class="muted">${esc(a.reason)} · proposed by ${esc(a.proposed_by)}</div>
+      ${a.status === 'pending' ? `<div class="diff">${a.tool === 'write_cluster_note' ? `+ vault/clusters/${esc(a.args.cluster_id)}.md   (new file · clusters/ only · no human note is touched)` : esc(JSON.stringify(a.args))}</div>
+        <div class="row"><button class="btn green sm" onclick="decideA(${a.id},'approve')">${ico('ok', 14)} Approve</button><button class="btn ghost sm" onclick="decideA(${a.id},'reject')">Reject</button></div>` : ''}
+      ${a.result ? `<div class="mono" style="margin-top:6px">result: ${esc(a.result)}</div>` : ''}</div></div></div>`; }).join('');
 }
-async function decideA(id, v) { await post(`/api/actions/${id}/${v}`); loadActions(); status(); }
+async function decideA(id, v) { await post(`/api/actions/${id}/${v}`); loadActions(); status(); if (v === 'approve') toast(`${ico('ok', 14)} <b>Approved</b> — written to the Obsidian vault and sealed in the ledger`, 'link'); }
 
+/* ---------------- audit ---------------- */
 async function loadAudit() {
-  const r = await api('/api/audit');
-  $('#vstat').innerHTML = `<div class="big ${r.verify.ok ? 'grn' : 'red'}">${r.verify.ok ? '✓' : '✗'}</div>
-    <div style="flex:1"><b>${esc(r.verify.message)}</b><div class="hash">head ${esc((r.verify.head || '').slice(0, 24))}…</div></div>
-    <button class="btn red" onclick="tamper()">Tamper with an entry (demo)</button>`;
-  $('#alog').innerHTML = `<table><tr><th>#</th><th>Time</th><th>Action</th><th>Payload</th><th>Hash</th></tr>
-    ${r.entries.map(e => `<tr${r.verify.broken_at === e.id ? ' style="background:#3a1420"' : ''}><td>${e.id}</td><td class="hash">${e.ts.slice(11, 19)}</td>
-      <td><b>${esc(e.action)}</b><br><span class="muted">${esc(e.actor)}</span></td><td class="hash">${esc(e.payload.slice(0, 90))}</td>
-      <td class="hash">${e.hash.slice(0, 12)}…<br>prev ${e.prev_hash.slice(0, 8)}…</td></tr>`).join('')}</table>`;
+  const r = await api('/api/audit'), ok = r.verify.ok;
+  $('#vstat').innerHTML = `<div class="seal"><div class="big" style="background:${ok ? 'rgba(52,211,153,.15)' : 'rgba(251,113,133,.18)'};color:${ok ? 'var(--grn)' : 'var(--ros)'}">${ico(ok ? 'ok' : 'x', 34)}</div>
+    <div style="flex:1"><div class="txt" style="font-size:19px;font-weight:650">${ok ? 'Chain intact' : 'Chain broken — tampering detected'}</div>
+    <div class="muted">${esc(r.verify.message)}. Each entry contains the SHA-256 of the one before it.</div>
+    ${r.verify.head ? `<div class="mono">head ${esc(r.verify.head.slice(0, 32))}…</div>` : ''}</div>
+    <button class="btn red" onclick="tamper()">${ico('x', 15)} Tamper with an entry</button></div>`;
+  $('#alog').innerHTML = r.entries.map(e => `<div class="blk ${r.verify.broken_at === e.id ? 'broken' : ''}"><div class="id">#${e.id}</div>
+    <div><b class="txt">${esc(e.action)}</b> <span class="muted">· ${esc(e.actor)} · ${e.ts.slice(11, 19)}</span><div class="mono" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(e.payload)}</div>
+    ${r.verify.broken_at === e.id ? '<div class="c-ros" style="font-weight:600">This entry was edited after it was sealed</div>' : ''}</div>
+    <div class="mono">hash ${e.hash.slice(0, 14)}…<br>prev ${e.prev_hash.slice(0, 14)}…</div></div>`).join('');
 }
 async function tamper() { await post('/api/audit/tamper'); loadAudit(); status(); }
 
+/* ---------------- demo ---------------- */
 async function drop(name) {
-  $('#dout').innerHTML = '<div class="card muted">Ingesting…</div>';
-  const r = await post('/api/demo/drop/' + name);
-  showIngest(r);
+  $('#dout').innerHTML = `<div class="card"><span class="spin"></span>&nbsp; Ingesting ${esc(name)} — parsing, scanning, embedding, linking…</div>`;
+  showIngest(await post('/api/demo/drop/' + name));
 }
 function showIngest(r) {
   const res = r.trace?.result || {};
-  $('#dout').innerHTML = r.quarantined
-    ? `<div class="card" style="border-color:var(--rose)"><b class="red">⛔ ${esc(r.id)} quarantined</b><br>${esc(r.reason)}<br><span class="muted">Stored for audit, excluded from every prompt.</span></div>`
-    : `<div class="card"><b>${esc(r.id)}</b> ingested (${r.chunks} chunks). ${res.joined ? `<span class="amb">Linked to <b>${res.joined}</b></span> — <a href="#" onclick="show('clusters');return false" style="color:var(--vlt)">open cluster</a>` : res.seeded ? `New cluster ${res.seeded}` : ''}
-      ${r.trace ? `<div class="evi">BLOCK → ${r.trace.blocked.length} candidate clusters\nRANK  → ${r.trace.ranked.map(x => x.cluster + ' @ ' + x.similarity).join(', ') || 'none over floor'}\nJUDGE → ${r.trace.adjudicated.map(x => `${x.cluster} vs ${x.against}: ${x.same_cause ? 'same cause' : 'different'} (${x.confidence})`).join('; ') || '—'}</div>` : ''}</div>`;
+  if (r.quarantined) {
+    $('#dout').innerHTML = `<div class="card" style="border-color:rgba(251,113,133,.6);background:linear-gradient(180deg,rgba(127,29,29,.35),var(--s1))">
+      <div class="row" style="gap:14px"><span class="c-ros">${ico('lock', 30)}</span><div><div class="txt" style="font-size:18px;font-weight:650">${esc(r.id)} quarantined</div>
+      <div class="muted">Detected: ${esc(r.reason)}. Stored for audit, excluded from every prompt and every search.</div></div></div></div>`;
+  } else {
+    const t = r.trace;
+    $('#dout').innerHTML = `<div class="card hl"><div class="row"><b class="txt" style="font-size:17px">${esc(r.id)} ingested</b><span class="muted">${r.chunks} chunks</span>
+      ${res.joined ? `<span class="tag t-am">LINKED TO ${res.joined}</span>` : res.seeded ? `<span class="tag t-vi">NEW CLUSTER ${res.seeded}</span>` : ''}</div>
+      ${t ? `<div class="pipe">
+        <div class="step"><div class="k">1 · BLOCK</div><div class="v">${t.blocked.length} candidate cluster${t.blocked.length === 1 ? '' : 's'}</div><div class="muted">share a component or dependency</div></div>
+        <div class="step"><div class="k">2 · RANK</div><div class="v">${t.ranked.map(x => `${x.cluster} @ ${x.similarity}`).join(', ') || 'none over floor'}</div><div class="muted">similarity to cluster centroid</div></div>
+        <div class="step"><div class="k">3 · JUDGE</div><div class="v">${t.adjudicated.map(x => `${x.same_cause ? 'same cause' : 'different'} (${x.confidence})`).join(', ') || '—'}</div><div class="muted">vs a real past incident</div></div>
+        <div class="step ${res.joined ? 'win' : ''}"><div class="k">4 · RESULT</div><div class="v">${res.joined ? 'Joined ' + res.joined : 'Seeded ' + (res.seeded || '')}</div><div class="muted">${res.joined ? 'centroid updated in O(1)' : 'no cluster owns this cause yet'}</div></div>
+      </div>` : ''}
+      ${res.joined ? `<div class="row" style="margin-top:14px"><button class="btn sm" onclick="show('clusters')">Open ${res.joined}</button></div>` : ''}</div>`;
+  }
   status();
 }
-async function reset() { await post('/api/reset'); $('#dout').innerHTML = '<div class="card grn">Demo reset.</div>'; status(); }
-
+async function reset() { await post('/api/reset'); $('#dout').innerHTML = `<div class="card"><span class="c-grn">${ico('ok', 16)}</span> Demo reset to the starting state.</div>`; seen = Date.now() / 1000; status(); }
 const dz = $('#dz');
 dz.ondragover = e => { e.preventDefault(); dz.classList.add('over'); };
 dz.ondragleave = () => dz.classList.remove('over');
-dz.ondrop = async e => {
-  e.preventDefault(); dz.classList.remove('over');
-  for (const f of e.dataTransfer.files) {
-    const fd = new FormData(); fd.append('file', f);
-    showIngest(await api('/api/ingest', {method: 'POST', body: fd}));
-  }
-};
+dz.ondrop = async e => { e.preventDefault(); dz.classList.remove('over');
+  for (const f of e.dataTransfer.files) { const fd = new FormData(); fd.append('file', f); showIngest(await api('/api/ingest', {method: 'POST', body: fd})); } };
 
-status(); setInterval(status, 2000);
+status(); loadOverview(); setInterval(status, 2000);
 </script>
 </body>
 </html>

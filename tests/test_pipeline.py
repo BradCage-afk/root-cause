@@ -124,3 +124,13 @@ def test_reingest_quarantined_doc_does_not_corrupt(c):
     assert c.get("/api/clusters/CLU-001/why").status_code == 200
     c.post("/api/reset")
     assert c.get("/api/audit").json()["verify"]["ok"]
+
+
+def test_demo_drop_is_ingested_once(c):
+    import time
+    c.post("/api/reset")
+    c.post("/api/demo/drop/INC-301.md")
+    time.sleep(1.5)  # give the folder watcher a chance to (wrongly) fire
+    acts = [e["action"] for e in c.get("/api/audit").json()["entries"]]
+    assert acts.count("INGESTED") == 1
+    c.post("/api/reset")

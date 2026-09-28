@@ -13,7 +13,7 @@ It runs entirely on one laptop. Local open-weight models, no internet, no API ke
 
 **ASYNC'26 · Track 1: Sovereign AI · Team Track and Field** — Ramaiah Institute of Technology
 
-![A recurrence cluster: four incidents, four teams, one shared cause](docs/screenshots/03-why-this-evidence.png)
+![Root Cause overview: the highest failure-debt cluster, with the fixes that didn't hold on a timeline](docs/screenshots/00-overview.png)
 
 ---
 
