@@ -347,29 +347,39 @@ def tamper():
 
 
 BENCH = {"proc": None}
+BENCH_LOG = config.ROOT / "data" / "benchmark.log"
 
 
 @app.get("/api/benchmark")
 def get_benchmark():
     p = BENCH["proc"]
     running = p is not None and p.poll() is None
+    failed = p is not None and not running and p.returncode != 0
     out = config.ROOT / "data" / "benchmark.json"
     result = json.loads(out.read_text(encoding="utf-8")) if out.exists() else None
-    return {"running": running, "result": result}
+    return {"running": running, "result": result,
+            "error": f"The scale test stopped with an error; details in {BENCH_LOG}" if failed else None}
 
 
 @app.post("/api/benchmark/run")
-def run_benchmark(incidents: int = 500, chains: int = 40, judge: str = "rules"):
-    """Runs in a separate process against its own vault and database; the live memory is untouched."""
+def run_benchmark(incidents: int = 500, chains: int = 40, judge: str = "rules", vectors: str = "fast"):
+    """Runs in a separate process against its own vault and database; the live memory is untouched.
+
+    vectors=fast (default) uses the deterministic offline vectors, so the button finishes in seconds on
+    any machine: the test measures linking, not embedding. vectors=model embeds all 500 incidents with
+    the local model first (about a minute on the RTX 3050, much longer on CPU)."""
     p = BENCH["proc"]
     if p is not None and p.poll() is None:
         return {"running": True}
     env = {**os.environ, "RC_JUDGE": judge if judge in ("rules", "hybrid", "llm") else "rules"}
+    if vectors != "model":
+        env["RC_MODE"] = "fallback"
+    log = open(BENCH_LOG, "w", encoding="utf-8")
     BENCH["proc"] = subprocess.Popen(
         [sys.executable, "-m", "rootcause.benchmark", "--incidents", str(incidents), "--chains", str(chains)],
-        cwd=str(config.ROOT), env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        cwd=str(config.ROOT), env=env, stdout=log, stderr=subprocess.STDOUT)
     with LOCK:
-        audit.record(con, "operator", "BENCHMARK_STARTED", {"incidents": incidents, "chains": chains, "judge": judge})
+        audit.record(con, "operator", "BENCHMARK_STARTED", {"incidents": incidents, "chains": chains, "judge": judge, "vectors": vectors})
     return {"running": True}
 
 

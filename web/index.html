@@ -444,7 +444,7 @@ async function ask() {
   const q = $('#q').value.trim() || SUGG[0]; $('#q').value = q;
   $('#ans').innerHTML = `<div class="card"><span class="spin"></span>&nbsp; Searching your records…</div>`;
   const a = await post('/api/ask', {q});
-  if (a.mode === 'refusal' || a.answer.startsWith('Nothing in the record')) {
+  if (a.mode === 'refusal' || /nothing in the record/i.test(a.answer)) {
     $('#ans').innerHTML = `<div class="card"><div class="callout info"><svg class="ic" width="20" height="20"><use href="#i-info"/></svg>
       <div><span class="strong">That isn't in your records.</span><br><span class="muted">Root Cause only answers from your organisation's documents, so it won't guess. Try one of the suggested questions.</span></div></div></div>`;
     return;
@@ -452,11 +452,13 @@ async function ask() {
   const byId = Object.fromEntries(a.evidence.map(e => [e.chunk_id, e])); window._ev = byId;
   let n = 0; const num = {};
   const body = esc(a.answer).replace(/\[C(\d+)\]/g, (m, id) => byId[id] ? `<button class="cite" onclick="src(${id})" title="${esc(byId[id].document_id)}">${num[id] = num[id] || ++n}</button>` : '');
-  const used = Object.keys(num).map(id => byId[id]);
+  let used = Object.keys(num).map(id => byId[id]);
+  // the model answered without inline citations: list the passages it was given
+  if (!used.length) used = (a.sources || []).map(id => byId[id]).filter(Boolean).map(e => (num[e.chunk_id] = ++n, e));
   $('#ans').innerHTML = `<div class="card"><div class="answer">${body}</div>
       <div class="row" style="margin-top:14px"><span class="label">Sources:</span>${used.map(e => `<button class="btn sec sm" onclick="src(${e.chunk_id})">${num[e.chunk_id]} · ${esc(e.document_id)}</button>`).join('')}</div>
       <div id="srcbox"></div>
-      <p class="label" style="margin:12px 0 0">${a.mode === 'llm' ? `Written by ${esc(a.model || 'the local AI model')} from these sources.` : 'Quoted directly from your records (basic mode).'}</p>
+      <p class="label" style="margin:12px 0 0">${a.mode === 'llm' ? `Written by ${esc(a.model || 'the local AI model')} from these sources.` : a.model_declined ? 'The AI model held back, so these lines are quoted directly from your records.' : 'Quoted directly from your records (basic mode).'}</p>
       <details><summary>All ${a.evidence.length} passages that were searched</summary>
       ${a.evidence.map(e => `<div class="quote"><b>${esc(e.document_id)}</b> · ${esc(e.section)}\n${esc(e.text.slice(0, 280))}${e.text.length > 280 ? '…' : ''}</div>`).join('')}</details></div>`;
 }
@@ -621,12 +623,13 @@ dz.ondrop = async e => { e.preventDefault(); dz.classList.remove('over');
 let scaleTimer = null;
 async function loadScale() {
   const b = await api('/api/benchmark'), r = b.result;
+  const err = b.error && !b.running ? `<div class="callout bad" style="margin-bottom:16px"><svg class="ic" width="20" height="20"><use href="#i-x"/></svg><div>${esc(b.error)}</div></div>` : '';
   const runBtn = `<button class="btn" onclick="runScale()" ${b.running ? 'disabled' : ''}>${b.running ? '<span class="spin"></span>&nbsp; Running…' : 'Run the scale test'}</button>`;
-  if (!r) { $('#sout').innerHTML = `<div class="card"><h2>Scale test</h2><p class="help">Generates 500 incidents with known answers in a separate database and measures speed and accuracy. Your real data is untouched.</p><div style="margin-top:14px">${runBtn}</div></div>`; }
+  if (!r) { $('#sout').innerHTML = err + `<div class="card"><h2>Scale test</h2><p class="help">Generates 500 incidents with known answers in a separate database and measures speed and accuracy. Your real data is untouched.</p><div style="margin-top:14px">${runBtn}</div></div>`; }
   else {
     const fewer = Math.round(r.naive_pair_comparisons / Math.max(1, r.centroid_comparisons));
     const k = (v, l, cls = '') => `<div class="card stat ${cls}"><div class="label">${l}</div><div class="v">${v}</div></div>`;
-    $('#sout').innerHTML = `<div class="callout info"><svg class="ic" width="20" height="20"><use href="#i-info"/></svg><div>With <b>${r.incidents} incidents</b>, a new one is matched in <b>${r.new_incident_ms} ms</b>, checking <b>${fewer}× fewer</b> pairs than comparing everything. <b>${pct(r.pair_precision)}</b> of the links it makes are correct.</div></div>
+    $('#sout').innerHTML = err + `<div class="callout info"><svg class="ic" width="20" height="20"><use href="#i-info"/></svg><div>With <b>${r.incidents} incidents</b>, a new one is matched in <b>${r.new_incident_ms} ms</b>, checking <b>${fewer}× fewer</b> pairs than comparing everything. <b>${pct(r.pair_precision)}</b> of the links it makes are correct.</div></div>
       <div class="grid g4" style="margin-top:16px">${k(r.new_incident_ms + ' ms', 'to match a new incident', 'good')}${k(fewer + '×', 'fewer comparisons')}${k(pct(r.pair_precision), 'of links correct')}${k(pct(r.pair_recall), 'of true links found')}</div>
       <div class="card" style="margin-top:16px"><h2>Why it stays fast</h2><p class="help">A new incident is only compared with problems that share one of its dependencies — never with every past incident.</p>
         ${[['Comparing every pair', r.naive_pair_comparisons, 'bad'], ['Sharing a dependency', r.blocked_candidates, ''], ['Actually compared', r.centroid_comparisons, 'good']].map(([l, n, cls]) => `<div class="row" style="margin-top:12px;flex-wrap:nowrap"><div style="width:190px" class="muted">${l}</div><div class="meter ${cls}" style="flex:1"><i style="width:${Math.max(1, Math.log10(n + 1) / Math.log10(r.naive_pair_comparisons + 1) * 100)}%"></i></div><div class="strong" style="width:80px;text-align:right">${n.toLocaleString()}</div></div>`).join('')}
@@ -637,7 +640,7 @@ async function loadScale() {
           <tr><td>Wrong links</td><td class="strong">${r.false_links}</td></tr>
           <tr><td>Match time median · 95th percentile</td><td class="strong">${r.link_ms_median} · ${r.link_ms_p95} ms</td></tr>
           <tr><td>Settings</td><td class="mono">judge ${esc(r.judge)} · vectors ${esc(r.embed_space)} · ${esc(r.generated_at)}</td></tr></table>
-          <p class="muted">The rule-based checker prefers missing a link over inventing one. The local AI model catches reworded write-ups it misses.</p></details></div>
+          <p class="muted">The button uses fast offline vectors, so it finishes in seconds: it measures linking, not the AI model. The rule-based checker prefers missing a link over inventing one; the local AI model catches reworded write-ups it misses.</p></details></div>
       <div style="margin-top:16px">${runBtn}</div>`;
   }
   clearTimeout(scaleTimer); if (b.running) scaleTimer = setTimeout(loadScale, 2000);

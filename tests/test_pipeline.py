@@ -150,3 +150,16 @@ def test_scale_benchmark_speed_and_precision():
     assert r["centroid_comparisons"] < r["naive_pair_comparisons"] / 10
     assert r["new_incident_ms"] < 1000
     assert r["pair_precision"] >= 0.8, r
+
+
+def test_model_decline_falls_back_to_quoted_evidence(c, monkeypatch):
+    """A small model saying "Nothing in the record" over strong evidence must not hide the answer."""
+    from rootcause import config, models
+    monkeypatch.setattr(models, "chat", lambda *a, **k: "[Nothing in the record covers that.]")
+    monkeypatch.setattr(config, "ANSWER_SIM", 0.0)
+    a = c.post("/api/ask", json={"q": "Why do internal certificates keep expiring?"}).json()
+    assert a["model_declined"] and a["mode"] == "extractive"
+    assert "Nothing in the record" not in a["answer"] and a["citations"]
+    monkeypatch.setattr(config, "ANSWER_SIM", 1.01)  # weak evidence: the refusal stands
+    a = c.post("/api/ask", json={"q": "How many gears does a tractor have?"}).json()
+    assert not a.get("model_declined")

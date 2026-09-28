@@ -46,3 +46,8 @@ def assert_local(url: str) -> str:
 
 
 assert_local(OLLAMA_URL)
+
+# An LLM "Nothing in the record" is overridden with quoted evidence when the best passage is at
+# least this similar to the question (semantic space only; on the demo vault off-topic
+# questions score <= 0.49 and real ones >= 0.62 with nomic-embed-text).
+ANSWER_SIM = float(os.environ.get("RC_ANSWER_SIM", "0.58"))
