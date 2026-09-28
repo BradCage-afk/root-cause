@@ -110,3 +110,16 @@ At the venue, on any Windows laptop with Python and Ollama installed:
 | `RC_JUDGE` | `hybrid` | `hybrid`, `llm` or `rules` |
 | `RC_MODE` | `auto` | `fallback` never calls a model |
 | `RC_CONF_MIN` | `0.60` | adjudication confidence needed to join a cluster |
+
+## Show it on other devices (judges' phones, a teammate's laptop)
+
+Double-click **`share.bat`** instead of `run.bat`. The window prints a link such as
+`http://192.168.1.23:8000` — open it on any phone or laptop connected to the **same Wi-Fi, phone hotspot or
+LAN cable**. No internet is used, and the "Data sent outside" counter stays at 0 (private addresses are
+local traffic).
+
+- When Windows Firewall asks about Python, tick **Private networks** and click **Allow**.
+- Campus Wi-Fi often blocks device-to-device traffic. If the link doesn't open, turn on the laptop's
+  **Mobile hotspot** (Settings → Network → Mobile hotspot) and connect the phone to that.
+- Anyone on that network can press the app's buttons (reset, approve, tamper). Share on a hotspot you
+  control, and close `share.bat` when you're done.

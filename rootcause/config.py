@@ -51,3 +51,8 @@ assert_local(OLLAMA_URL)
 # least this similar to the question (semantic space only; on the demo vault off-topic
 # questions score <= 0.49 and real ones >= 0.62 with nomic-embed-text).
 ANSWER_SIM = float(os.environ.get("RC_ANSWER_SIM", "0.58"))
+
+# Where the web UI listens. 127.0.0.1 = this laptop only. share.bat sets 0.0.0.0 so phones and laptops on
+# the same Wi-Fi / hotspot / LAN can open it (no internet involved; private addresses don't count as egress).
+HOST = os.environ.get("RC_HOST", "127.0.0.1")
+PORT = int(os.environ.get("RC_PORT", "8000"))

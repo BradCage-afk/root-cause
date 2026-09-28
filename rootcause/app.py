@@ -5,6 +5,7 @@ Run:  python -m rootcause.app      then open http://127.0.0.1:8000
 import json
 import os
 import shutil
+import socket
 import subprocess
 import sys
 from contextlib import asynccontextmanager
@@ -14,6 +15,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, UploadFile
 from fastapi.responses import FileResponse
+import psutil
 from pydantic import BaseModel
 
 from . import audit, cluster, config, debt, egress, ingest, models, policy, preflight, search
@@ -117,6 +119,19 @@ def start_watcher():
 
 
 # ---------------------------------------------------------------- API
+def _lan_ips():
+    """This machine's private IPv4 addresses, for the share link."""
+    import ipaddress
+    out = []
+    for addrs in psutil.net_if_addrs().values():
+        for a in addrs:
+            if a.family == socket.AF_INET:
+                ip = ipaddress.ip_address(a.address)
+                if ip.is_private and not ip.is_loopback and not ip.is_link_local:
+                    out.append(a.address)
+    return out
+
+
 @asynccontextmanager
 async def lifespan(_app):
     empty = con.execute("SELECT COUNT(*) FROM documents").fetchone()[0] == 0
@@ -129,10 +144,13 @@ async def lifespan(_app):
     if cluster.backfill_nodes(con):
         print("Upgraded the clustering index for an existing database.", flush=True)
     start_watcher()
-    print("Root Cause is ready: http://127.0.0.1:8000   (keep this window open; Ctrl+C to stop)", flush=True)
+    print(f"Root Cause is ready: http://127.0.0.1:{config.PORT}   (keep this window open; Ctrl+C to stop)", flush=True)
+    if config.HOST == "0.0.0.0":
+        for ip in _lan_ips():
+            print(f"  Shared on your network: http://{ip}:{config.PORT}   (same Wi-Fi / hotspot / LAN only)", flush=True)
     if os.environ.get("RC_OPEN_BROWSER", "1") == "1":
         import webbrowser
-        webbrowser.open("http://127.0.0.1:8000")
+        webbrowser.open(f"http://127.0.0.1:{config.PORT}")
     yield
 
 
@@ -403,7 +421,7 @@ def reset():
 def main():
     import uvicorn
     print(f"Starting Root Cause. Model server: {config.OLLAMA_URL} ({models.status()['mode']})", flush=True)
-    uvicorn.run(app, host="127.0.0.1", port=8000, log_level="warning")
+    uvicorn.run(app, host=config.HOST, port=config.PORT, log_level="warning")
 
 
 if __name__ == "__main__":
