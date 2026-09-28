@@ -12,7 +12,7 @@ import pytest
 ROOT = Path(__file__).resolve().parent.parent
 _tmp = Path(tempfile.mkdtemp())
 shutil.copytree(ROOT / "vault", _tmp / "vault")
-os.environ.update(RC_MODE="fallback", RC_DB=str(_tmp / "t.db"), RC_VAULT=str(_tmp / "vault"))
+os.environ.update(RC_MODE="fallback", RC_DB=str(_tmp / "t.db"), RC_VAULT=str(_tmp / "vault"), RC_OPEN_BROWSER="0")
 
 from fastapi.testclient import TestClient  # noqa: E402
 from rootcause import app as A  # noqa: E402

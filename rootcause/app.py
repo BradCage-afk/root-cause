@@ -3,6 +3,7 @@
 Run:  python -m rootcause.app      then open http://127.0.0.1:8000
 """
 import json
+import os
 import shutil
 from contextlib import asynccontextmanager
 import threading
@@ -116,8 +117,16 @@ def start_watcher():
 async def lifespan(_app):
     empty = con.execute("SELECT COUNT(*) FROM documents").fetchone()[0] == 0
     if empty or _meta("space") != models.embed_space():
-        rebuild("startup" if empty else "embedding model changed")
+        m = models.status()
+        print(f"Building memory from the vault ({m['mode']} mode) - first start takes about a minute...",
+              flush=True)
+        res = rebuild("startup" if empty else "embedding model changed")
+        print(f"Loaded {res['documents']} documents in {res['seconds']} s.", flush=True)
     start_watcher()
+    print("Root Cause is ready: http://127.0.0.1:8000   (keep this window open; Ctrl+C to stop)", flush=True)
+    if os.environ.get("RC_OPEN_BROWSER", "1") == "1":
+        import webbrowser
+        webbrowser.open("http://127.0.0.1:8000")
     yield
 
 
@@ -322,6 +331,7 @@ def reset():
 
 def main():
     import uvicorn
+    print(f"Starting Root Cause. Model server: {config.OLLAMA_URL} ({models.status()['mode']})", flush=True)
     uvicorn.run(app, host="127.0.0.1", port=8000, log_level="warning")
 
 
