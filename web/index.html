@@ -17,14 +17,17 @@
   --shadow:0 1px 2px rgba(16,24,40,.05),0 1px 3px rgba(16,24,40,.08);
 }
 :root[data-theme="dark"]{
-  --bg:#111214;--surface:#18191c;--surface2:#202125;--border:#2b2d32;--border2:#3a3d44;
-  --text:#f2f4f7;--body:#d0d5dd;--muted:#98a2b3;--faint:#6b7280;
-  --accent:#818cf8;--accent-hover:#a5b4fc;--accent-soft:rgba(129,140,248,.14);--accent-text:#c7d2fe;
-  --good:#47cd89;--good-soft:rgba(71,205,137,.12);--good-line:rgba(71,205,137,.35);
-  --warn:#fdb022;--warn-soft:rgba(253,176,34,.12);--warn-line:rgba(253,176,34,.35);
-  --bad:#f97066;--bad-soft:rgba(249,112,102,.12);--bad-line:rgba(249,112,102,.38);
-  --shadow:0 1px 2px rgba(0,0,0,.4);
+  --bg:#0f1117;--surface:#171a22;--surface2:#1f232d;--border:#272c37;--border2:#363c4a;
+  --text:#f5f7fb;--body:#d6dbe4;--muted:#9ba5b7;--faint:#6b7486;
+  --accent:#6366f1;--accent-hover:#7c7ff5;--accent-soft:rgba(129,140,248,.17);--accent-text:#c7ccff;
+  --good:#4ade80;--good-soft:rgba(74,222,128,.12);--good-line:rgba(74,222,128,.35);
+  --warn:#fbbf24;--warn-soft:rgba(251,191,36,.12);--warn-line:rgba(251,191,36,.36);
+  --bad:#ff7b72;--bad-soft:rgba(255,123,114,.12);--bad-line:rgba(255,123,114,.4);
+  --shadow:inset 0 1px 0 rgba(255,255,255,.04),0 4px 14px rgba(0,0,0,.28);
 }
+/* dark only: a faint accent glow at the top, and brighter accent icons */
+:root[data-theme="dark"] body{background:radial-gradient(1100px 480px at 65% -8%,rgba(99,102,241,.10),transparent 65%) fixed,var(--bg)}
+:root[data-theme="dark"] .nav button.on svg{color:var(--accent-text)}
 *{box-sizing:border-box}
 html,body{margin:0}
 body{background:var(--bg);color:var(--body);font:15px/1.55 "Segoe UI Variable Text","Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif;-webkit-font-smoothing:antialiased}
