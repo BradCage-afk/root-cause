@@ -127,4 +127,4 @@ docs/             architecture, Windows setup, demo script, screenshots
 - **Injection defence is defence in depth, not a solved problem.** Pattern-based quarantine plus a policy
   gate that no document can override.
 
-See [STATUS.md](STATUS.md) for what is done and what is next.
+See [STATUS.md](STATUS.md) for what is done and what is next, and [docs/HACKATHON-24H.md](docs/HACKATHON-24H.md) for the 24-hour hackathon plan.
