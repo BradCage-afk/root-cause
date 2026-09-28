@@ -5,6 +5,8 @@ Run:  python -m rootcause.app      then open http://127.0.0.1:8000
 import json
 import os
 import shutil
+import subprocess
+import sys
 from contextlib import asynccontextmanager
 import threading
 import time
@@ -41,7 +43,7 @@ def _meta(k, v=None):
 def rebuild(reason="bootstrap"):
     with LOCK:
         for t in ("documents", "chunks", "incidents", "remediations", "decisions", "clusters",
-                  "cluster_members", "predictions", "actions", "audit_log"):
+                  "cluster_members", "cluster_nodes", "predictions", "actions", "audit_log"):
             con.execute(f"DELETE FROM {t}")
         con.execute("DELETE FROM chunks_fts")
         con.commit()
@@ -124,6 +126,8 @@ async def lifespan(_app):
               flush=True)
         res = rebuild("startup" if empty else "embedding model changed")
         print(f"Loaded {res['documents']} documents in {res['seconds']} s.", flush=True)
+    if cluster.backfill_nodes(con):
+        print("Upgraded the clustering index for an existing database.", flush=True)
     start_watcher()
     print("Root Cause is ready: http://127.0.0.1:8000   (keep this window open; Ctrl+C to stop)", flush=True)
     if os.environ.get("RC_OPEN_BROWSER", "1") == "1":
@@ -137,6 +141,10 @@ app = FastAPI(title="Root Cause", version="0.1", lifespan=lifespan)
 
 class Q(BaseModel):
     q: str
+
+
+class ModelChoice(BaseModel):
+    chat_model: str
 
 
 class Change(BaseModel):
@@ -164,10 +172,31 @@ def status():
                 "quarantined": q, "events": EVENTS[-8:]}
 
 
+@app.get("/api/models")
+def list_models():
+    return {"current": config.CHAT_MODEL, "available": models.available_chat_models(),
+            "mode": models.status()["mode"], "embed_model": config.EMBED_MODEL}
+
+
+@app.post("/api/model")
+def swap_model(body: ModelChoice):
+    before = config.CHAT_MODEL
+    try:
+        now = models.set_chat_model(body.chat_model)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    with LOCK:
+        audit.record(con, "operator", "MODEL_SWAPPED", {"from": before, "to": now,
+                                                        "memory": "unchanged", "embed_model": config.EMBED_MODEL})
+    event("link", f"Now answering with {now}. Same memory, clusters and ledger - different brain.")
+    return {"from": before, "to": now}
+
+
 @app.post("/api/ask")
 def ask(body: Q):
     with LOCK:
         out = search.answer(con, body.q)
+        out["model"] = config.CHAT_MODEL if out["mode"] == "llm" else None
         audit.record(con, "operator", "QUERY", {"q": body.q, "mode": out["mode"],
                                                 "citations": out.get("citations", [])})
         return out
@@ -314,6 +343,33 @@ def get_audit():
 def tamper():
     with LOCK:
         return {**audit.tamper(con), "verify": audit.verify(con)}
+
+
+BENCH = {"proc": None}
+
+
+@app.get("/api/benchmark")
+def get_benchmark():
+    p = BENCH["proc"]
+    running = p is not None and p.poll() is None
+    out = config.ROOT / "data" / "benchmark.json"
+    result = json.loads(out.read_text(encoding="utf-8")) if out.exists() else None
+    return {"running": running, "result": result}
+
+
+@app.post("/api/benchmark/run")
+def run_benchmark(incidents: int = 500, chains: int = 40, judge: str = "rules"):
+    """Runs in a separate process against its own vault and database; the live memory is untouched."""
+    p = BENCH["proc"]
+    if p is not None and p.poll() is None:
+        return {"running": True}
+    env = {**os.environ, "RC_JUDGE": judge if judge in ("rules", "hybrid", "llm") else "rules"}
+    BENCH["proc"] = subprocess.Popen(
+        [sys.executable, "-m", "rootcause.benchmark", "--incidents", str(incidents), "--chains", str(chains)],
+        cwd=str(config.ROOT), env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    with LOCK:
+        audit.record(con, "operator", "BENCHMARK_STARTED", {"incidents": incidents, "chains": chains, "judge": judge})
+    return {"running": True}
 
 
 @app.get("/api/egress")

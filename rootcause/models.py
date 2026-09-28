@@ -122,3 +122,26 @@ def chat(system: str, user: str, as_json: bool = False, model: str = None):
         return json.loads(txt) if as_json else txt.strip()
     except Exception:
         return None
+
+
+# ---------------------------------------------------------------- model swap
+_EMBED_HINTS = ("embed", "minilm", "bge-", "e5-")
+
+
+def available_chat_models():
+    """Chat-capable models the local Ollama server has on disk (embedding models excluded)."""
+    if not ollama_up():
+        return []
+    return sorted(m for m in _state["models"] if not any(h in m.lower() for h in _EMBED_HINTS))
+
+
+def set_chat_model(name: str) -> str:
+    """Switch the answering model at runtime. Embeddings, clusters and the ledger are untouched:
+    the memory stays exactly the same, only the model that writes prose changes."""
+    have = available_chat_models()
+    match = next((m for m in have if m == name or m.split(":")[0] == name or m == name + ":latest"), None)
+    if not match:
+        raise ValueError(f"{name!r} is not installed. Available: {', '.join(have) or 'none'}")
+    config.CHAT_MODEL = match
+    _state["checked"] = 0.0
+    return match

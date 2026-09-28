@@ -40,6 +40,11 @@ CREATE TABLE IF NOT EXISTS cluster_members (
   cluster_id TEXT, incident_id TEXT, similarity REAL, verdict TEXT,
   confidence REAL, reason TEXT, added_at TEXT, PRIMARY KEY (cluster_id, incident_id)
 );
+-- blocking index: which clusters own which component/dependency nodes
+CREATE TABLE IF NOT EXISTS cluster_nodes (
+  cluster_id TEXT, node TEXT, PRIMARY KEY (cluster_id, node)
+);
+CREATE INDEX IF NOT EXISTS cluster_nodes_node ON cluster_nodes(node);
 CREATE TABLE IF NOT EXISTS predictions (
   id INTEGER PRIMARY KEY AUTOINCREMENT, remediation_id TEXT, cluster_id TEXT,
   predicted_at TEXT, verified_at TEXT, outcome TEXT, evidence TEXT

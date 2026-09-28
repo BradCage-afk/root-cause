@@ -51,6 +51,11 @@ main{min-width:0}
 .d-vi{background:var(--vi2);box-shadow:0 0 0 4px rgba(167,139,250,.16)}
 .d-am{background:var(--amb);box-shadow:0 0 0 4px rgba(251,191,36,.14)}
 .d-bad{background:var(--ros);box-shadow:0 0 0 4px rgba(251,113,133,.16)}
+.pill select{background:transparent;border:0;color:var(--txt);font:inherit;font-weight:600;cursor:pointer;outline:0;padding:0 2px}
+.pill select option{background:var(--s1);color:var(--txt)}
+.pill.swap{border-color:rgba(167,139,250,.55);box-shadow:0 0 0 3px rgba(139,92,246,.12)}
+.vs{display:grid;grid-template-columns:150px 1fr 90px;gap:12px;align-items:center;margin:10px 0}
+.vs .track{height:14px;border-radius:99px;background:var(--s3);overflow:hidden}.vs .track i{display:block;height:100%;border-radius:99px}
 #banner{display:none;margin:18px 30px 0;padding:14px 18px;border-radius:14px;border:1px solid rgba(251,113,133,.5);
   background:linear-gradient(90deg,rgba(127,29,29,.55),rgba(76,5,25,.35));color:#ffe4e6;display:none;align-items:center;gap:14px}
 #banner svg{flex:none;color:var(--ros)}
@@ -209,6 +214,7 @@ th{color:var(--muted);font-weight:600;font-size:12px;letter-spacing:.04em}
       <button data-p="audit"><svg><use href="#i-chain"/></svg>Audit ledger</button>
       <div class="sec">DEMO</div>
       <button data-p="demo"><svg><use href="#i-play"/></svg>Live demo controls</button>
+      <button data-p="scale"><svg><use href="#i-debt"/></svg>Scale proof</button>
     </nav>
     <div class="foot" id="foot">Loading…</div>
   </aside>
@@ -233,6 +239,7 @@ th{color:var(--muted);font-weight:600;font-size:12px;letter-spacing:.04em}
           <div class="card"><div class="eyebrow">Ask your memory</div>
             <p class="muted" style="margin:6px 0 10px">Answers come only from your organisation's records — every claim cited.</p>
             <div id="sugg1"></div></div>
+          <div class="card" id="scalemini" style="display:none;cursor:pointer" onclick="show('scale')"></div>
           <div class="card"><div class="eyebrow">Live activity</div><div class="feed" id="feed" style="margin-top:6px"></div></div>
         </div>
       </div>
@@ -288,6 +295,9 @@ th{color:var(--muted);font-weight:600;font-size:12px;letter-spacing:.04em}
       <div class="chain" id="alog" style="margin-top:18px"></div>
     </section>
 
+    <!-- SCALE -->
+    <section class="page" id="scale"><div id="sout"></div></section>
+
     <!-- DEMO -->
     <section class="page" id="demo">
       <div class="grid g3">
@@ -325,6 +335,7 @@ const PAGES = {
   act: ['Actions & policy', 'Retrieved content is evidence, not authority'],
   audit: ['Audit ledger', 'Every event sealed into a hash chain'],
   demo: ['Live demo controls', 'Drive the demo — or drop files straight into the vault'],
+  scale: ['Scale proof', 'A 500-incident benchmark with known ground truth'],
 };
 
 document.querySelectorAll('.nav button').forEach(b => b.onclick = () => show(b.dataset.p));
@@ -332,7 +343,7 @@ function show(p) {
   document.querySelectorAll('.nav button').forEach(x => x.classList.toggle('on', x.dataset.p === p));
   document.querySelectorAll('.page').forEach(x => x.classList.toggle('on', x.id === p));
   $('#ptitle').textContent = PAGES[p][0]; $('#psub').textContent = PAGES[p][1];
-  ({overview: loadOverview, clusters: loadClusters, debt: loadDebt, act: loadActions, audit: loadAudit})[p]?.();
+  ({overview: loadOverview, clusters: loadClusters, debt: loadDebt, act: loadActions, audit: loadAudit, scale: loadScale})[p]?.();
   window.scrollTo(0, 0);
 }
 const suggHTML = () => SUGG.map(q => `<span class="chip click" onclick="askQ('${q.replace(/'/g, "\\'")}')">${ico('ask', 13)} ${esc(q)}</span>`).join('');
@@ -349,9 +360,7 @@ async function status() {
     const s = await api('/api/status'); lastStatus = s;
     const e = s.egress.external_connections;
     $('#p-egress').innerHTML = `<span class="dot ${e ? 'd-bad' : 'd-ok'}"></span>Egress · ${e} external connection${e === 1 ? '' : 's'}`;
-    const m = s.model;
-    $('#p-model').innerHTML = m.mode === 'ollama'
-      ? `<span class="dot d-vi"></span>Local model · ${esc(m.chat_model)}` : `<span class="dot d-am"></span>Fallback mode · no model`;
+    renderModel(s.model);
     $('#p-audit').innerHTML = `<span class="dot ${s.audit.ok ? 'd-ok' : 'd-bad'}"></span>Audit · ${s.audit.ok ? 'chain intact' : 'CHAIN BROKEN'}`;
     const q = s.quarantined;
     $('#banner').style.display = q.length ? 'flex' : 'none';
@@ -362,6 +371,28 @@ async function status() {
     if (s.events.length) seen = Math.max(seen, ...s.events.map(x => x.ts));
     $('#feed').innerHTML = s.events.slice().reverse().map(ev => `<div><span class="dot ${ev.kind === 'danger' ? 'd-bad' : ev.kind === 'link' ? 'd-am' : 'd-vi'}" style="margin-top:6px"></span><span>${esc(ev.text)}</span></div>`).join('') || '<div class="muted">No events yet</div>';
   } catch (e) { $('#p-model').innerHTML = '<span class="dot d-bad"></span>Backend offline'; }
+}
+
+/* ---------------- model swap ---------------- */
+let modelKey = '';
+async function renderModel(m) {
+  const key = m.mode + ':' + m.chat_model;
+  if (key === modelKey) return;
+  modelKey = key;
+  const pill = $('#p-model');
+  if (m.mode !== 'ollama') { pill.classList.remove('swap'); pill.innerHTML = `<span class="dot d-am"></span>Fallback mode · no model`; return; }
+  const r = await api('/api/models');
+  if (r.available.length < 2) { pill.classList.remove('swap'); pill.innerHTML = `<span class="dot d-vi"></span>Local model · ${esc(r.current)}`; return; }
+  pill.classList.add('swap');
+  pill.innerHTML = `<span class="dot d-vi"></span>Local model ·
+    <select id="msel" title="Swap the model — the memory stays the same" onchange="swapModel(this.value)">
+    ${r.available.map(x => `<option value="${esc(x)}" ${x === r.current ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>`;
+}
+async function swapModel(v) {
+  try {
+    await post('/api/model', {chat_model: v});   // the server's live event raises the notification
+    modelKey = ''; status();
+  } catch (e) { toast('Swap failed: ' + esc(e.message), 'danger'); modelKey = ''; status(); }
 }
 
 /* ---------------- timeline (svg) ---------------- */
@@ -407,6 +438,12 @@ async function loadOverview() {
   $('#kpis').innerHTML = k(s.counts.documents, 'Documents in memory', 'doc') + k(s.counts.incidents, 'Incidents', 'bolt')
     + k(cs.length, 'Recurrence clusters', 'net') + k(bad, "Fixes that didn't hold", 'x', 'warn')
     + k(s.egress.external_connections, 'External connections', 'lock', 'good');
+  const bm = (await api('/api/benchmark')).result;
+  if (bm) { $('#scalemini').style.display = 'block';
+    $('#scalemini').innerHTML = `<div class="eyebrow">Scale proof</div><div class="row" style="margin-top:8px;gap:18px">
+      <div><div class="txt" style="font-size:22px;font-weight:700">${bm.incidents}</div><div class="muted" style="font-size:12px">incidents</div></div>
+      <div><div class="c-grn" style="font-size:22px;font-weight:700">${bm.new_incident_ms} ms</div><div class="muted" style="font-size:12px">per new incident</div></div>
+      <div><div class="txt" style="font-size:22px;font-weight:700">${bm.pair_precision.toFixed(2)}</div><div class="muted" style="font-size:12px">precision</div></div></div>`; }
   const top = debt[0];
   if (!top) { $('#topcl').innerHTML = '<div class="muted">No recurrence clusters yet.</div>'; return; }
   const c = cs.find(x => x.id === top.cluster), f = fx.filter(x => x.cluster_id === top.cluster);
@@ -418,6 +455,42 @@ async function loadOverview() {
     ${f.filter(x => x.status === 'ineffective').map(x => `<div class="fix"><span class="tag t-bad">DIDN'T HOLD</span><div><b class="txt">${x.id}</b> <span class="muted">recorded as a ${esc(x.kind)} on ${fmt(x.applied_at)}</span> — ${esc(x.description)}<br><span class="c-ros">recurred ${x.recurrences_after.length}× after: ${x.recurrences_after.map(r => r.id).join(', ')}</span></div></div>`).join('')}
     <div class="row" style="margin-top:14px"><button class="btn sm" onclick="show('clusters')">Open cluster</button><button class="btn ghost sm" onclick="show('pre')">Check a change against it</button></div>`;
 }
+
+/* ---------------- scale proof ---------------- */
+let scaleTimer = null;
+async function loadScale() {
+  const b = await api('/api/benchmark');
+  const r = b.result;
+  const run = `<button class="btn" onclick="runScale()" ${b.running ? 'disabled' : ''}>${b.running ? '<span class="spin"></span>&nbsp; Running…' : ico('play', 15) + ' Run benchmark (500 incidents)'}</button>`;
+  if (!r) { $('#sout').innerHTML = `<div class="card"><p class="muted">No benchmark yet. It generates 500 incidents with known ground truth in a separate database — the live memory is untouched.</p>${run}</div>`; }
+  else {
+    const fewer = Math.round(r.naive_pair_comparisons / Math.max(1, r.centroid_comparisons));
+    const k = (v, l, cls = '') => `<div class="card kpi ${cls}"><div class="l">${l}</div><div class="v">${v}</div></div>`;
+    const bar = (label, n, max, color) => `<div class="vs"><div class="muted">${label}</div><div class="track"><i style="width:${Math.max(1.2, Math.log10(n + 1) / Math.log10(max + 1) * 100)}%;background:${color}"></i></div><div class="txt" style="font-weight:700">${n.toLocaleString()}</div></div>`;
+    $('#sout').innerHTML = `<div class="grid g5">${k(r.incidents, 'incidents')}${k(r.new_incident_ms + ' ms', 'to link a new incident', 'good')}${k(fewer + '×', 'fewer comparisons')}${k(r.pair_precision.toFixed(2), 'precision (pairs)')}${k(r.false_links, 'false links', r.false_links ? 'warn' : 'good')}</div>
+      <div class="grid g2" style="margin-top:16px">
+        <div class="card hl"><div class="eyebrow">Why it scales — comparisons made</div>
+          <p class="muted" style="margin:6px 0 12px">A new incident is compared with cluster centroids that share a component or dependency, never with every past incident.</p>
+          ${bar('Naive all-pairs', r.naive_pair_comparisons, r.naive_pair_comparisons, 'linear-gradient(90deg,#fb7185,#be123c)')}
+          ${bar('Blocked candidates', r.blocked_candidates, r.naive_pair_comparisons, 'linear-gradient(90deg,#a78bfa,#7c3aed)')}
+          ${bar('Centroid comparisons', r.centroid_comparisons, r.naive_pair_comparisons, 'linear-gradient(90deg,#34d399,#059669)')}
+          <div class="dim" style="font-size:12px">bar length on a log scale</div></div>
+        <div class="card"><div class="eyebrow">Against ground truth</div>
+          <table style="margin-top:8px">
+            <tr><td>True recurrence chains</td><td class="txt"><b>${r.true_chains}</b> <span class="muted">(${r.chain_incidents} incidents)</span></td></tr>
+            <tr><td>Singletons, many sharing a dependency with a chain</td><td class="txt"><b>${r.singletons}</b></td></tr>
+            <tr><td>Clusters found</td><td class="txt"><b>${r.clusters_found}</b></td></tr>
+            <tr><td>Chains recovered exactly</td><td class="txt"><b>${r.chains_recovered_exactly}</b> of ${r.true_chains}</td></tr>
+            <tr><td>Pair precision · recall</td><td class="txt"><b>${r.pair_precision.toFixed(2)}</b> · <b>${r.pair_recall.toFixed(2)}</b></td></tr>
+            <tr><td>Link time median · p95</td><td class="txt"><b>${r.link_ms_median}</b> · <b>${r.link_ms_p95}</b> ms</td></tr>
+          </table>
+          <p class="dim" style="font-size:12px;margin-bottom:0">Judge: ${esc(r.judge)} · vectors: ${esc(r.embed_space)} · ${esc(r.generated_at)}. The deterministic judge favours precision: it misses paraphrases rather than invent links.</p></div>
+      </div><div style="margin-top:16px">${run}</div>`;
+  }
+  clearTimeout(scaleTimer);
+  if (b.running) scaleTimer = setTimeout(loadScale, 2000);
+}
+async function runScale() { await post('/api/benchmark/run'); loadScale(); }
 
 /* ---------------- ask ---------------- */
 function askQ(q) { show('ask'); $('#q').value = q; ask(); }
@@ -437,7 +510,7 @@ async function ask() {
     return `<span class="chip cite" onclick="evi(${id})" title="${esc(byId[id].document_id)} · ${esc(byId[id].section)}">${map[id]}</span>`;
   });
   const used = Object.keys(map).map(id => byId[id]);
-  $('#ans').innerHTML = `<div class="card hl"><div class="meta"><span class="tag t-vi">${a.mode === 'llm' ? 'LOCAL MODEL' : 'EXTRACTIVE'}</span>
+  $('#ans').innerHTML = `<div class="card hl"><div class="meta"><span class="tag t-vi">${a.mode === 'llm' ? 'LOCAL MODEL · ' + esc(a.model || '') : 'EXTRACTIVE'}</span>
       <span>${ico('doc', 13)} grounded in ${used.length} source${used.length === 1 ? '' : 's'}</span><span>${ico('lock', 13)} computed on this machine</span></div>
       <div class="answer">${body}</div>
       <div style="margin-top:14px">${used.map(e => `<span class="chip click" onclick="evi(${e.chunk_id})"><b class="c-vi">${map[e.chunk_id]}</b> ${esc(e.document_id)} · ${esc(e.section)}</span>`).join('')}</div>

@@ -8,3 +8,4 @@ wheels/
 vault/clusters/
 vault/inbox/
 vault/changes/
+vault-scale/

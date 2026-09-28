@@ -134,3 +134,19 @@ def test_demo_drop_is_ingested_once(c):
     acts = [e["action"] for e in c.get("/api/audit").json()["entries"]]
     assert acts.count("INGESTED") == 1
     c.post("/api/reset")
+
+
+def test_model_swap_refuses_uninstalled_models(c):
+    r = c.post("/api/model", json={"chat_model": "gpt-4o"})
+    assert r.status_code == 400
+    assert c.get("/api/models").json()["current"]
+
+
+def test_scale_benchmark_speed_and_precision():
+    from rootcause import benchmark
+    r = benchmark.run(n=120, chains=12, seed=3, root=_tmp / "vault-scale", db=_tmp / "bench.db",
+                      out=_tmp / "benchmark.json")
+    assert r["incidents"] == 120
+    assert r["centroid_comparisons"] < r["naive_pair_comparisons"] / 10
+    assert r["new_incident_ms"] < 1000
+    assert r["pair_precision"] >= 0.8, r

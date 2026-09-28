@@ -26,6 +26,9 @@ CONF_MIN = float(os.environ.get("RC_CONF_MIN", "0.60"))
 # ADJUDICATE judge: "hybrid" averages the local model's verdict with the deterministic
 # factor-overlap score (default); "llm" trusts the model alone; "rules" never calls it.
 JUDGE = os.environ.get("RC_JUDGE", "hybrid")
+# Hybrid veto: the model may promote a link only when the cause language already partly
+# supports it. Below this deterministic score, no model verdict can create a link.
+RULES_FLOOR = float(os.environ.get("RC_RULES_FLOOR", "0.45"))
 
 # Folders inside the vault the system may write to. Everything else is human-authored.
 WRITABLE_DIRS = ("clusters",)

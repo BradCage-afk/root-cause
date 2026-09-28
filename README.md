@@ -31,6 +31,8 @@ It runs entirely on one laptop. Local open-weight models, no internet, no API ke
 | **Audit ledger** | Every event is hash-chained. Edit any entry and the chain visibly breaks. |
 | **Obsidian vault** | The corpus is a plain markdown vault. Approved cluster notes are written back into it with wikilinks — readable with Root Cause uninstalled. |
 | **Egress monitor** | Live count of connections from Root Cause or the model server to any non-local address. It reads zero. |
+| **Model swap** | Switch the answering model (e.g. Llama ↔ Qwen) from the header, live. Embeddings, clusters and the ledger are untouched: the brain is replaceable, the memory is yours. |
+| **Scale proof** | A 500-incident benchmark with known ground truth: 0.9 ms to link a new incident, 145× fewer comparisons than all-pairs, 0.90 pair precision with the deterministic judge. |
 
 ## How it works
 
@@ -75,6 +77,7 @@ git clone https://github.com/BradCage-afk/root-cause.git
 cd root-cause
 setup.bat        :: creates .venv, installs packages, pulls llama3.2:3b + nomic-embed-text
 run.bat          :: opens http://127.0.0.1:8000
+update.bat       :: later: pull the latest code, keeping your setup, models and data
 ```
 
 Full guide, including fully offline setup: [docs/SETUP-WINDOWS.md](docs/SETUP-WINDOWS.md)
@@ -101,7 +104,8 @@ Open **Live demo controls** in the sidebar, or drag files from `demo/` into the 
 ## Tests
 
 ```bash
-RC_MODE=fallback python -m pytest -q      # 13 tests, one per demo beat, no model needed
+RC_MODE=fallback python -m pytest -q      # 16 tests: every demo beat, model swap, scale benchmark
+python -m rootcause.benchmark --incidents 500   # the scale proof, from the command line
 ```
 
 ## Repository layout

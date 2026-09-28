@@ -51,13 +51,13 @@ Do **not** rebuild what works. Every new feature goes in behind the 14 tests tha
 - Add a small "median answer time" tile on the Overview, computed from real queries.
 - Run 20 questions on the 3050, write the median into the deck (slide 6) in place of "target".
 
-### 2. Model swap — Anshuman + Tobie
+### 2. Model swap — ✅ DONE before the hackathon
 - `POST /api/model {"chat_model": "qwen2.5:3b"}` switches the chat model at runtime (embeddings stay the same,
   so the memory is untouched).
 - A dropdown in the header: Llama 3.2 3B ↔ Qwen 2.5 3B.
 - Demo beat: ask the same question, switch model, ask again. Same citations, same clusters, different wording.
 
-### 3. Scale proof — Vatsal
+### 3. Scale proof — ✅ DONE before the hackathon (now: run it on the 3050 with `--judge hybrid`, compare recall)
 - Extend `scripts/make_corpus.py` with `--scale 500`: generate filler incidents with distinct causes across
   more teams and components (keep the planted chains).
 - Benchmark script: time to link one new incident, and how many recurrence clusters are found.

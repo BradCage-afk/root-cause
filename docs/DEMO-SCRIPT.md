@@ -36,6 +36,13 @@ Ask: **What caused the checkout timeouts in January?** Click a citation chip.
 
 (Optional: ask *What is the capital of France?* → "Nothing in the record covers that.")
 
+### 0:38 — Swap the brain (needs `ollama pull qwen2.5:3b` beforehand)
+
+Header → **Local model** dropdown → pick **qwen2.5:3b**. Ask the same question again.
+
+> "Same question, a different model. Same sources, same clusters, same ledger. The brain is replaceable —
+> the memory is yours."
+
 ### 0:45 — Beat 3: a new incident arrives
 
 **Live demo controls → ① Drop new incident INC-301.** Pause on the BLOCK / RANK / JUDGE trace.
@@ -89,6 +96,13 @@ Point at **REM-31 ✗ ineffective**. Then **Failure debt**.
 **Audit ledger** → chain intact → **Tamper with an entry** → broken.
 
 > "Every step is in a hash-chained ledger. Edit one entry, and the chain breaks."
+
+### 2:50 — Scale (optional)
+
+**Scale proof** in the sidebar.
+
+> "At 500 incidents, a new one links in under a millisecond — 145 times fewer comparisons than checking
+> every pair — and it's measured against known ground truth, including where it still misses."
 
 ### 2:55 — Close
 
