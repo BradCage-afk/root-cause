@@ -1,5 +1,8 @@
 # Demo video script — 3 minutes
 
+> **Newer, combined version:** [UPDATED-DECK-SCRIPT.md](UPDATED-DECK-SCRIPT.md) — slide-by-slide pitch, this
+> demo (updated), and judge answers in one file.
+
 **Record on the RTX 3050 laptop, with Ollama running.** Before you press record:
 
 - [ ] `.venv\Scripts\python -m rootcause.check` ends with **Ready to record**
